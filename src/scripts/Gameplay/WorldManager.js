@@ -63,7 +63,10 @@ export default class WorldManager {
     if (this.canMoveDown()) {
       this.falling.y += 16;
     } else {
-      this.falling.children.forEach((brick) => this.grounded.push(brick));
+      this.falling.children.forEach((brick) => {
+        brick.moves = false;
+        this.grounded.push(brick)
+      });
       this.falling = this.createTetronimo();
     }
 
