@@ -1,5 +1,8 @@
 Ludum Dare 41!
 --
+### Play It Now!
+https://ninjascribble.github.io/LudumDare41/
+
 ### Getting Started
 Install all dependencies and run the dev server:
 ```

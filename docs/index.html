@@ -4,12 +4,45 @@
 	<meta charset="UTF-8">
 	<title>Let's make a game!</title>
   <style type="text/css">
-		body { background-color: rgba(25, 25, 25, 1); }
-		#content { max-width: 640px; margin: 5px auto; }
+		body {
+			background-color: rgba(25, 25, 25, 1);
+			color: #EFEFEF;
+			font-family: Monaco, monospace;
+			font-size: 10pt;
+		}
+
+		a, a:visited {
+			color: #EFEFEF;
+		}
+
+		a:active, a:hover {
+			color: #FF69B4;
+		}
+
+		.hotpink {
+			color: #FF69B4;
+		}
+
+		#content {
+			margin: 5px auto;
+			max-width: 640px;
+		}
+
+		#footer {
+			text-align: center;
+		}
 	</style>
 </head>
 <body>
 	<div id="content"></div>
+	<div id="footer">
+		<p>
+			Made with <span class="hotpink">❤</span> by <a href="https://github.com/ninjascribble">ninjascribble</a> and <a href="https://github.com/Gubriels">gubriels</a>
+		</p>
+		<p>
+			GitHub Source: <a href="https://github.com/ninjascribble/LudumDare41">https://github.com/ninjascribble/LudumDare41</a>
+		</p>
+	</div>
   <script src="phaser.min.js"></script>
 	<script src="scripts/game.js"></script>
 </body>
