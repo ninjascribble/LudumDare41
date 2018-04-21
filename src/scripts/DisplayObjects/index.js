@@ -1,6 +1,7 @@
 import BitmapFont from './BitmapFont';
 import TitleCard from './TitleCard';
 import Player from './Player'
+import Tetronimo from './Tetronimo';
 const DISPLAY_FONT = 'Blocktopia_32pt';
 const BODY_FONT = 'Blocktopia_12pt';
 const BRICKS = 'bricks';
@@ -29,7 +30,6 @@ export default {
   brick: function brick (game, x = 0, y = 0, color = 0) {
     const sprite = game.add.sprite(x, y, BRICKS, color);
     game.physics.arcade.enable(sprite);
-    game.debug.body(sprite);
     sprite.body.enable = true;
     sprite.body.immobile = true;
     sprite.body.allowGravity = false;
@@ -38,14 +38,7 @@ export default {
   },
 
   tetronimo: function tetronimo (game, x = 0, y = 0, type = 0) {
-    const group = new Phaser.Group(game);
-    group.x = x;
-    group.y = y;
-    group.addChild(this.brick(game, 0, 16, 0));
-    group.addChild(this.brick(game, 16, 16, 0));
-    group.addChild(this.brick(game, 16, 0, 0));
-    group.addChild(this.brick(game, 32, 16, 0));
-    return group;
+    return new Tetronimo(game, x, y, type);
   },
 
   player: function player (game, x = 0, y = 0) {
