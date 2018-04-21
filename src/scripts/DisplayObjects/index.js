@@ -31,6 +31,7 @@ export default {
     const sprite = game.add.sprite(x, y, BRICKS, color);
     game.physics.arcade.enable(sprite);
     sprite.body.enable = true;
+    sprite.body.moves = false;
     sprite.body.immobile = true;
     sprite.body.allowGravity = false;
     sprite.body.collideWorldBounds = true;

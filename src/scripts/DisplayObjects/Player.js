@@ -41,8 +41,7 @@ export default class Player extends Phaser.Sprite {
       this.body.velocity.x = 160;
       break;
     case UP:
-      console.log('jump');
-      this.body.velocity.y = -125;
+      this.body.velocity.y = -200;
       break;
   }
 }
