@@ -34,7 +34,7 @@ export default {
     sprite.body.moves = false;
     sprite.body.immobile = true;
     sprite.body.allowGravity = false;
-    sprite.body.collideWorldBounds = true;
+    sprite.body.collideWorldBounds = false;
     return sprite;
   },
 
