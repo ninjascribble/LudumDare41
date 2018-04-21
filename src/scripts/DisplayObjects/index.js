@@ -25,9 +25,24 @@ export default {
   },
 
   brick: function brick (game, x = 0, y = 0, color = 0) {
-    const sprite = new Phaser.Sprite(game, x, y, BRICKS, color);
-    game.physics.enable(sprite);
+    const sprite = game.add.sprite(x, y, BRICKS, color);
+    game.physics.arcade.enable(sprite);
+    game.debug.body(sprite);
+    sprite.body.enable = true;
+    sprite.body.immobile = true;
+    sprite.body.allowGravity = false;
     sprite.body.collideWorldBounds = true;
     return sprite;
+  },
+
+  tetronimo: function tetronimo (game, x = 0, y = 0, type = 0) {
+    const group = new Phaser.Group(game);
+    group.x = x;
+    group.y = y;
+    group.addChild(this.brick(game, 0, 0, 0));
+    group.addChild(this.brick(game, 16, 0, 0));
+    group.addChild(this.brick(game, 16, 16, 0));
+    group.addChild(this.brick(game, 32, 0, 0));
+    return group;
   }
 };
