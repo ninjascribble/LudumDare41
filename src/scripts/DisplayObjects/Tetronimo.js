@@ -13,16 +13,24 @@ const TYPES = [
 export default class Tetronimo extends Phaser.Group {
   constructor (game, x = 0, y = 0, type = 0) {
     super(game);
-    this.buildBricks(type, x, y);
+    this.width = 0;
+    this.height = 0;
+    this.buildBricks(type);
+    this.x = x;
+    this.y = y;
+    // this.pivot.x = this.width / 2;
+    // this.pivot.y = this.height / 2;
   }
 
-  buildBricks (type, x = 0, y = 0) {
+  buildBricks (type) {
     const template = TYPES[type];
     const color = type;
 
     template.forEach((coords) => {
-      const brick = DisplayObjects.brick(game, coords.x + x, coords.y + y, color);
+      const brick = DisplayObjects.brick(game, coords.x, coords.y, color);
       this.addChild(brick);
+      this.width = Math.max(this.width, coords.x);
+      this.height = Math.max(this.height, coords.y);
     });
   }
 }

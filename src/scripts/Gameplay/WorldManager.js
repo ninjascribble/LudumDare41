@@ -3,38 +3,68 @@ import DisplayObjects from '../DisplayObjects';
 export default class WorldManager {
   constructor(game) {
     this.grounded = this.grounded = game.add.group(undefined, 'grounded'),
-    this.falling = this.createTetronimo();
+    this.falling = this.createTetronimo(48, 0);
+    this.lockMove = false;
   }
 
   start () {
     this.next();
   }
 
-  createTetronimo () {
-    return DisplayObjects.tetronimo(game, 0, 0, Math.floor(Math.random() * 7));
+  createTetronimo (x = 0, y = 0) {
+    return DisplayObjects.tetronimo(game, x, y, Math.floor(Math.random() * 7));
+  }
+
+  lockMovement () {
+    this.movementLocked = true;
+    game.time.events.add(100, () => this.unlockMovement());
+  }
+
+  unlockMovement () {
+    this.movementLocked = false;
+  }
+
+  moveTetronimosRight () {
+    if (this.canMoveRight()) {
+      this.falling.x += 16;
+      this.lockMovement();
+    }
+  }
+
+  moveTetronimosLeft () {
+    if (this.canMoveLeft()) {
+      this.falling.x -= 16;
+      this.lockMovement();
+    }
+  }
+
+  rotateTetronimo () {
+    console.log('rotateTetronimo');
   }
 
   next () {
-    if (this.canMoveFalling()) {
-      this.falling.addAll('y', 16);
+    if (this.canMoveDown()) {
+      this.falling.y += 16;
     } else {
       this.grounded.addChild(this.falling);
       this.falling = null;
     }
 
-    if (this.grounded.length < 4) {
+    if (this.grounded.length < 24) {
       if (!this.falling) {
         this.falling = this.createTetronimo();
       }
-      game.time.events.add(100, () => this.next());
+      game.time.events.add(400, () => this.next());
     }
+
+    this.lockMove = false;
   }
 
-  canMoveFalling () {
+  canMoveDown () {
     const floor = new Phaser.Line(
-      game.world.left,
+      game.world.bounds.left,
       game.world.bounds.bottom,
-      game.world.right,
+      game.world.bounds.right,
       game.world.bounds.bottom
     );
 
@@ -58,6 +88,106 @@ export default class WorldManager {
             other.body.top
           );
           return !Phaser.Line.intersects(ray, otherTop);
+        });
+      });
+    });
+  }
+
+  canMoveLeft () {
+    if (this.movementLocked) {
+      return false;
+    }
+
+    const wall = new Phaser.Line(
+      game.world.bounds.left,
+      game.world.bounds.top,
+      game.world.bounds.left,
+      game.world.bounds.bottom
+    );
+
+    return this.falling.children.every((brick) => {
+      const ray1 = new Phaser.Line(
+        brick.body.center.x - 16,
+        brick.body.top + 1,
+        brick.body.center.x,
+        brick.body.top + 1,
+      );
+
+      const ray2 = new Phaser.Line(
+        brick.body.center.x - 16,
+        brick.body.bottom - 1,
+        brick.body.center.x,
+        brick.body.bottom - 1,
+      );
+
+      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
+        return false;
+      }
+
+      return this.grounded.children.every((tetronimo) => {
+        return tetronimo.children.every((other) => {
+          const otherSide = new Phaser.Line(
+            other.body.right,
+            other.body.top,
+            other.body.right,
+            other.body.bottom
+          );
+
+          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+            return false;
+          } else {
+            return true;
+          }
+        });
+      });
+    });
+  }
+
+  canMoveRight () {
+    if (this.movementLocked) {
+      return false;
+    }
+
+    const wall = new Phaser.Line(
+      game.world.bounds.right,
+      game.world.bounds.top,
+      game.world.bounds.right,
+      game.world.bounds.bottom
+    );
+
+    return this.falling.children.every((brick) => {
+      const ray1 = new Phaser.Line(
+        brick.body.center.x,
+        brick.body.top + 1,
+        brick.body.center.x + 16,
+        brick.body.top + 1,
+      );
+
+      const ray2 = new Phaser.Line(
+        brick.body.center.x,
+        brick.body.bottom - 1,
+        brick.body.center.x + 16,
+        brick.body.bottom - 1,
+      );
+
+      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
+        return false;
+      }
+
+      return this.grounded.children.every((tetronimo) => {
+        return tetronimo.children.every((other) => {
+          const otherSide = new Phaser.Line(
+            other.body.left,
+            other.body.top,
+            other.body.left,
+            other.body.bottom
+          );
+
+          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+            return false;
+          } else {
+            return true;
+          }
         });
       });
     });

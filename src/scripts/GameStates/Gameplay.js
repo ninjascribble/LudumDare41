@@ -19,15 +19,27 @@ export default class Gameplay extends Phaser.State {
 
   update () {
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-      this.player.moveLeft();
+      if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+        this.worldManager.moveTetronimosLeft();
+      } else {
+        this.player.moveLeft();
+      }
     }
 
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-      this.player.moveRight();
+      if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+        this.worldManager.moveTetronimosRight();
+      } else {
+        this.player.moveRight();
+      }
     }
 
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && (this.player.body.velocity.y == 0)) {
-      this.player.jump();
+      if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+        this.worldManager.rotateTetronimo();
+      } else {
+        this.player.jump();
+      }
     }
   }
 }
