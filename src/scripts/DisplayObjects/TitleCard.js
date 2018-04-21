@@ -25,5 +25,22 @@ export default class TitleCard extends Phaser.Group {
     this.addChild(DisplayObjects.brick(game, 20, 80, 4));
     this.addChild(DisplayObjects.brick(game, 40, 80, 5));
     this.addChild(DisplayObjects.brick(game, 60, 80, 6));
+    this.player = DisplayObjects.player(game, 0, 0);
+    this.addChild(this.player);
+  }
+
+  update () {
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+      this.player.moveLeft();
+    }
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+      this.player.moveRight();
+    }
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && (this.player.body.velocity.y == 0)) {
+      this.player.jump();
+    }
+
   }
 }
