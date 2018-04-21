@@ -21,9 +21,8 @@ export default class Gameplay extends Phaser.State {
     if (this.worldManager.falling){
       game.physics.arcade.collide(this.player, this.worldManager.falling.children, this.collisionHandler, null, this);
     }
-    this.worldManager.grounded.children.forEach((tetronimo) => {
-      game.physics.arcade.collide(this.player, tetronimo.children);
-    });
+
+    game.physics.arcade.collide(this.player, this.worldManager.grounded);
 
     if (this.player.alive){
       if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
