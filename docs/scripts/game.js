@@ -8923,7 +8923,7 @@
 	
 	var _Gameplay2 = _interopRequireDefault(_Gameplay);
 	
-	var _Loading = __webpack_require__(335);
+	var _Loading = __webpack_require__(337);
 	
 	var _Loading2 = _interopRequireDefault(_Loading);
 	
@@ -8963,6 +8963,10 @@
 	
 	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
 	
+	var _WorldManager = __webpack_require__(336);
+	
+	var _WorldManager2 = _interopRequireDefault(_WorldManager);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8983,67 +8987,45 @@
 	  _createClass(Gameplay, [{
 	    key: 'create',
 	    value: function create() {
-	      var _this2 = this;
-	
 	      this.stage.backgroundColor = '#5FCDE4';
 	      game.physics.startSystem(Phaser.Physics.ARCADE);
 	      game.physics.arcade.gravity.y = 350;
 	
 	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
 	
-	      this.grounded = game.add.group(undefined, 'grounded');
-	      this.falling = _DisplayObjects2.default.tetronimo(game, game.width / 2 - 135, 0, 0);
+	      this.player = _DisplayObjects2.default.player(game, game.width / 2, 45);
 	
-	      game.time.events.add(100, function () {
-	        return _this2.next();
-	      });
+	      game.add.existing(this.player);
+	
+	      this.worldManager = new _WorldManager2.default(game);
+	      this.worldManager.start();
 	    }
 	  }, {
-	    key: 'next',
-	    value: function next() {
-	      var _this3 = this;
-	
-	      if (this.canMoveFalling()) {
-	        this.falling.addAll('y', 16);
-	      } else {
-	        this.grounded.addChild(this.falling);
-	        this.falling = null;
+	    key: 'update',
+	    value: function update() {
+	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+	          this.worldManager.moveTetronimosLeft();
+	        } else {
+	          this.player.moveLeft();
+	        }
 	      }
 	
-	      if (this.grounded.length < 4) {
-	        if (!this.falling) {
-	          this.falling = _DisplayObjects2.default.tetronimo(game, game.width / 2 - 135, 0, 0);
+	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+	          this.worldManager.moveTetronimosRight();
+	        } else {
+	          this.player.moveRight();
 	        }
-	        game.time.events.add(100, function () {
-	          return _this3.next();
-	        });
 	      }
-	    }
-	  }, {
-	    key: 'canMoveFalling',
-	    value: function canMoveFalling() {
-	      var _this4 = this;
 	
-	      var floor = new Phaser.Line(game.world.left, game.world.bounds.bottom, game.world.right, game.world.bounds.bottom);
-	
-	      return this.falling.children.every(function (brick) {
-	        var x1 = brick.body.center.x;
-	        var y1 = brick.body.center.y;
-	        var x2 = brick.body.center.x;
-	        var y2 = brick.body.center.y + 16;
-	        var ray = new Phaser.Line(x1, y1, x2, y2);
-	
-	        if (Phaser.Line.intersects(ray, floor)) {
-	          return false;
+	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && this.player.body.velocity.y == 0) {
+	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+	          this.worldManager.rotateTetronimo();
+	        } else {
+	          this.player.jump();
 	        }
-	
-	        return _this4.grounded.children.every(function (tetronimo) {
-	          return tetronimo.children.every(function (other) {
-	            var otherTop = new Phaser.Line(other.body.left, other.body.top, other.body.right, other.body.top);
-	            return !Phaser.Line.intersects(ray, otherTop);
-	          });
-	        });
-	      });
+	      }
 	    }
 	  }]);
 	
@@ -9073,6 +9055,10 @@
 	var _Player = __webpack_require__(334);
 	
 	var _Player2 = _interopRequireDefault(_Player);
+	
+	var _Tetronimo = __webpack_require__(335);
+	
+	var _Tetronimo2 = _interopRequireDefault(_Tetronimo);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -9121,11 +9107,10 @@
 	
 	    var sprite = game.add.sprite(x, y, BRICKS, color);
 	    game.physics.arcade.enable(sprite);
-	    game.debug.body(sprite);
 	    sprite.body.enable = true;
 	    sprite.body.immobile = true;
 	    sprite.body.allowGravity = false;
-	    sprite.body.collideWorldBounds = true;
+	    sprite.body.collideWorldBounds = false;
 	    return sprite;
 	  },
 	
@@ -9134,21 +9119,14 @@
 	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 	    var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
 	
-	    var group = new Phaser.Group(game);
-	    group.x = x;
-	    group.y = y;
-	    group.addChild(this.brick(game, 0, 0, 0));
-	    group.addChild(this.brick(game, 16, 0, 0));
-	    group.addChild(this.brick(game, 16, 16, 0));
-	    group.addChild(this.brick(game, 32, 0, 0));
-	    return group;
+	    return new _Tetronimo2.default(game, x, y, type);
 	  },
 	
 	  player: function player(game) {
 	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 	
-	    var sprite = new _Player2.default(game, 0, 0, PLAYER);
+	    var sprite = new _Player2.default(game, x, y, PLAYER);
 	    return sprite;
 	  }
 	};
@@ -9225,8 +9203,6 @@
 	  value: true
 	});
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
 	var _index = __webpack_require__(330);
 	
 	var _index2 = _interopRequireDefault(_index);
@@ -9259,27 +9235,8 @@
 	    _this.y = y;
 	    _this.addChild(title);
 	    _this.addChild(story);
-	    _this.player = _index2.default.player(game, 0, 0);
-	    _this.addChild(_this.player);
 	    return _this;
 	  }
-	
-	  _createClass(TitleCard, [{
-	    key: 'update',
-	    value: function update() {
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-	        this.player.moveLeft();
-	      }
-	
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-	        this.player.moveRight();
-	      }
-	
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && this.player.body.velocity.y == 0) {
-	        this.player.jump();
-	      }
-	    }
-	  }]);
 	
 	  return TitleCard;
 	}(Phaser.Group);
@@ -9384,6 +9341,320 @@
 
 /***/ },
 /* 335 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _index = __webpack_require__(330);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var _ = null;
+	var TYPES = [[// T-Shaped
+	[[_, 2, _], [1, 0, 3], [_, _, _]], [[_, 1, _], [_, 0, 2], [_, 3, _]], [[_, _, _], [3, 0, 1], [_, 2, _]], [[_, 3, _], [2, 0, _], [_, 1, _]]], [// J-Shaped
+	[[_, 1, _], [_, 0, _], [3, 2, _]], [[3, _, _], [2, 0, 1], [_, _, _]], [[_, 2, 3], [_, 0, _], [_, 1, _]], [[_, _, _], [1, 0, 2], [_, _, 3]]], [// L-Shaped
+	[[_, 1, _], [_, 0, _], [_, 2, 3]], [[_, _, _], [2, 0, 1], [3, _, _]], [[3, 2, _], [_, 0, _], [_, 1, _]], [[_, _, 3], [1, 0, 2], [_, _, _]]], [// O-Shaped
+	[[0, 1], [2, 3]], [[2, 0], [3, 1]], [[3, 2], [1, 0]], [[1, 3], [0, 2]]], [// S-Shaped
+	[[_, _, _], [_, 0, 1], [3, 2, _]], [[3, _, _], [2, 0, _], [_, 1, _]], [[_, 2, 3], [1, 0, _], [_, _, _]], [[_, 1, _], [_, 0, 2], [_, _, 3]]], [// Z-Shaped
+	[[_, _, _], [1, 0, _], [_, 2, 3]], [[_, 1, _], [2, 0, _], [3, _, _]], [[3, 2, _], [_, 0, 1], [_, _, _]], [[_, _, 3], [_, 0, 2], [_, 1, _]]], [// I-Shaped
+	[[_, 0, _, _], [_, 1, _, _], [_, 2, _, _], [_, 3, _, _]], [[_, _, _, _], [3, 2, 1, 0], [_, _, _, _], [_, _, _, _]], [[_, _, 3, _], [_, _, 2, _], [_, _, 1, _], [_, _, 0, _]], [[_, _, _, _], [_, _, _, _], [0, 1, 2, 3], [_, _, _, _]]]];
+	
+	var Tetronimo = function (_Phaser$Group) {
+	  _inherits(Tetronimo, _Phaser$Group);
+	
+	  function Tetronimo(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	    var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+	
+	    _classCallCheck(this, Tetronimo);
+	
+	    var _this = _possibleConstructorReturn(this, (Tetronimo.__proto__ || Object.getPrototypeOf(Tetronimo)).call(this, game));
+	
+	    _this.color = type;
+	    _this.template = TYPES[type];
+	    _this.rotationIndex = 0;
+	    _this.buildBricks();
+	    _this.positionBricks();
+	    _this.x = x;
+	    _this.y = y;
+	    return _this;
+	  }
+	
+	  _createClass(Tetronimo, [{
+	    key: 'buildBricks',
+	    value: function buildBricks(type) {
+	      this.addChild(_index2.default.brick(game, 0, 0, this.color));
+	      this.addChild(_index2.default.brick(game, 0, 0, this.color));
+	      this.addChild(_index2.default.brick(game, 0, 0, this.color));
+	      this.addChild(_index2.default.brick(game, 0, 0, this.color));
+	    }
+	  }, {
+	    key: 'rotateBricks',
+	    value: function rotateBricks() {
+	      this.rotationIndex++;
+	      if (this.rotationIndex >= this.template.length) {
+	        this.rotationIndex = 0;
+	      }
+	      this.positionBricks();
+	    }
+	  }, {
+	    key: 'positionBricks',
+	    value: function positionBricks() {
+	      var _this2 = this;
+	
+	      this.template[this.rotationIndex].forEach(function (row, i) {
+	        row.forEach(function (col, j) {
+	          if (col != _) {
+	            var child = _this2.getChildAt(col);
+	            child.x = j * 16;
+	            child.y = i * 16;
+	          }
+	        });
+	      });
+	    }
+	  }]);
+	
+	  return Tetronimo;
+	}(Phaser.Group);
+	
+	exports.default = Tetronimo;
+
+/***/ },
+/* 336 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _DisplayObjects = __webpack_require__(330);
+	
+	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var WorldManager = function () {
+	  function WorldManager(game) {
+	    _classCallCheck(this, WorldManager);
+	
+	    this.grounded = this.grounded = game.add.group(undefined, 'grounded'), this.falling = this.createTetronimo(64, 0);
+	    this.lockMove = false;
+	  }
+	
+	  _createClass(WorldManager, [{
+	    key: 'start',
+	    value: function start() {
+	      this.next();
+	      this.unlockMovement();
+	      this.unlockRotation();
+	    }
+	  }, {
+	    key: 'createTetronimo',
+	    value: function createTetronimo() {
+	      var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	
+	      return _DisplayObjects2.default.tetronimo(game, x, y, Math.floor(Math.random() * 7));
+	    }
+	  }, {
+	    key: 'lockMovement',
+	    value: function lockMovement() {
+	      var _this = this;
+	
+	      this.movementLocked = true;
+	      game.time.events.add(100, function () {
+	        return _this.unlockMovement();
+	      });
+	    }
+	  }, {
+	    key: 'unlockMovement',
+	    value: function unlockMovement() {
+	      this.movementLocked = false;
+	    }
+	  }, {
+	    key: 'moveTetronimosRight',
+	    value: function moveTetronimosRight() {
+	      if (this.canMoveRight()) {
+	        this.lockMovement();
+	        this.falling.x += 16;
+	      }
+	    }
+	  }, {
+	    key: 'moveTetronimosLeft',
+	    value: function moveTetronimosLeft() {
+	      if (this.canMoveLeft()) {
+	        this.lockMovement();
+	        this.falling.x -= 16;
+	      }
+	    }
+	  }, {
+	    key: 'lockRotation',
+	    value: function lockRotation() {
+	      var _this2 = this;
+	
+	      this.rotationLocked = true;
+	      game.time.events.add(250, function () {
+	        return _this2.unlockRotation();
+	      });
+	    }
+	  }, {
+	    key: 'unlockRotation',
+	    value: function unlockRotation() {
+	      this.rotationLocked = false;
+	    }
+	  }, {
+	    key: 'rotateTetronimo',
+	    value: function rotateTetronimo() {
+	      if (this.rotationLocked == false) {
+	        this.lockRotation();
+	        this.falling.rotateBricks();
+	      }
+	    }
+	  }, {
+	    key: 'next',
+	    value: function next() {
+	      var _this3 = this;
+	
+	      if (this.canMoveDown()) {
+	        this.falling.y += 16;
+	      } else {
+	        this.grounded.addChild(this.falling);
+	        this.falling = null;
+	      }
+	
+	      if (this.grounded.length < 24) {
+	        if (!this.falling) {
+	          this.falling = this.createTetronimo();
+	        }
+	        game.time.events.add(400, function () {
+	          return _this3.next();
+	        });
+	      }
+	
+	      this.lockMove = false;
+	    }
+	  }, {
+	    key: 'canMoveDown',
+	    value: function canMoveDown() {
+	      var _this4 = this;
+	
+	      var floor = new Phaser.Line(game.world.bounds.left, game.world.bounds.bottom, game.world.bounds.right, game.world.bounds.bottom);
+	
+	      return this.falling.children.every(function (brick) {
+	        var x1 = brick.body.center.x;
+	        var y1 = brick.body.center.y;
+	        var x2 = brick.body.center.x;
+	        var y2 = brick.body.center.y + 16;
+	        var ray = new Phaser.Line(x1, y1, x2, y2);
+	
+	        if (Phaser.Line.intersects(ray, floor)) {
+	          return false;
+	        }
+	
+	        return _this4.grounded.children.every(function (tetronimo) {
+	          return tetronimo.children.every(function (other) {
+	            var otherTop = new Phaser.Line(other.body.left, other.body.top, other.body.right, other.body.top);
+	            return !Phaser.Line.intersects(ray, otherTop);
+	          });
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'canMoveLeft',
+	    value: function canMoveLeft() {
+	      var _this5 = this;
+	
+	      if (this.movementLocked) {
+	        return false;
+	      }
+	
+	      var wall = new Phaser.Line(game.world.bounds.left, game.world.bounds.top, game.world.bounds.left, game.world.bounds.bottom);
+	
+	      return this.falling.children.every(function (brick) {
+	        var ray1 = new Phaser.Line(brick.body.center.x - 16, brick.body.top + 1, brick.body.center.x, brick.body.top + 1);
+	
+	        var ray2 = new Phaser.Line(brick.body.center.x - 16, brick.body.bottom - 1, brick.body.center.x, brick.body.bottom - 1);
+	
+	        if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
+	          return false;
+	        }
+	
+	        return _this5.grounded.children.every(function (tetronimo) {
+	          return tetronimo.children.every(function (other) {
+	            var otherSide = new Phaser.Line(other.body.right, other.body.top, other.body.right, other.body.bottom);
+	
+	            if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+	              return false;
+	            } else {
+	              return true;
+	            }
+	          });
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'canMoveRight',
+	    value: function canMoveRight() {
+	      var _this6 = this;
+	
+	      if (this.movementLocked) {
+	        return false;
+	      }
+	
+	      var wall = new Phaser.Line(game.world.bounds.right, game.world.bounds.top, game.world.bounds.right, game.world.bounds.bottom);
+	
+	      return this.falling.children.every(function (brick) {
+	        var ray1 = new Phaser.Line(brick.body.center.x, brick.body.top + 1, brick.body.center.x + 16, brick.body.top + 1);
+	
+	        var ray2 = new Phaser.Line(brick.body.center.x, brick.body.bottom - 1, brick.body.center.x + 16, brick.body.bottom - 1);
+	
+	        if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
+	          return false;
+	        }
+	
+	        return _this6.grounded.children.every(function (tetronimo) {
+	          return tetronimo.children.every(function (other) {
+	            var otherSide = new Phaser.Line(other.body.left, other.body.top, other.body.left, other.body.bottom);
+	
+	            if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+	              return false;
+	            } else {
+	              return true;
+	            }
+	          });
+	        });
+	      });
+	    }
+	  }]);
+	
+	  return WorldManager;
+	}();
+	
+	exports.default = WorldManager;
+
+/***/ },
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
