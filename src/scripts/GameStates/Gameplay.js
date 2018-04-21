@@ -2,8 +2,9 @@ import DisplayObjects from '../DisplayObjects';
 
 export default class Gameplay extends Phaser.State {
   create () {
+    this.stage.backgroundColor = '#5FCDE4';
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    game.physics.arcade.gravity.y = 100;
+    game.physics.arcade.gravity.y = 350;
 
     DisplayObjects.titleCard(game, game.width / 2, 45);
 
@@ -18,10 +19,15 @@ export default class Gameplay extends Phaser.State {
       this.falling.addAll('y', 16);
     } else {
       this.grounded.addChild(this.falling);
-      this.falling = DisplayObjects.tetronimo(game, (game.width / 2) - 135, 0, 0);
+      this.falling = null;
     }
 
-    game.time.events.add(100, () => this.next());
+    if (this.grounded.length < 4) {
+      if (!this.falling) {
+        this.falling = DisplayObjects.tetronimo(game, (game.width / 2) - 135, 0, 0);
+      }
+      game.time.events.add(100, () => this.next());
+    }
   }
 
   canMoveFalling () {
