@@ -3,11 +3,15 @@ import DisplayObjects from '../DisplayObjects';
 export default class WorldManager {
   constructor(game) {
     this.grounded = this.grounded = game.add.group(undefined, 'grounded'),
-    this.falling = DisplayObjects.tetronimo(game, 0, 0, 0);
+    this.falling = this.createTetronimo();
   }
 
   start () {
     this.next();
+  }
+
+  createTetronimo () {
+    return DisplayObjects.tetronimo(game, 0, 0, Math.floor(Math.random() * 7));
   }
 
   next () {
@@ -20,7 +24,7 @@ export default class WorldManager {
 
     if (this.grounded.length < 4) {
       if (!this.falling) {
-        this.falling = DisplayObjects.tetronimo(game, 0, 0, 0);
+        this.falling = this.createTetronimo();
       }
       game.time.events.add(100, () => this.next());
     }
