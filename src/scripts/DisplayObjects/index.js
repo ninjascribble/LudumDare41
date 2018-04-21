@@ -42,7 +42,7 @@ export default {
   },
 
   player: function player (game, x = 0, y = 0) {
-    const sprite = new Player(game, 0, 0, PLAYER);
+    const sprite = new Player(game, x, y, PLAYER);
     return sprite;
   }
 };

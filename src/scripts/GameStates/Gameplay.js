@@ -9,7 +9,25 @@ export default class Gameplay extends Phaser.State {
 
     DisplayObjects.titleCard(game, game.width / 2, 45);
 
+    this.player = DisplayObjects.player(game, game.width / 2, 45);
+
+    game.add.existing(this.player);
+
     this.worldManager = new WorldManager(game);
     this.worldManager.start();
+  }
+
+  update () {
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+      this.player.moveLeft();
+    }
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+      this.player.moveRight();
+    }
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && (this.player.body.velocity.y == 0)) {
+      this.player.jump();
+    }
   }
 }
