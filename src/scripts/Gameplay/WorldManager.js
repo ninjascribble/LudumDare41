@@ -3,12 +3,14 @@ import DisplayObjects from '../DisplayObjects';
 export default class WorldManager {
   constructor(game) {
     this.grounded = this.grounded = game.add.group(undefined, 'grounded'),
-    this.falling = this.createTetronimo(48, 0);
+    this.falling = this.createTetronimo(64, 0);
     this.lockMove = false;
   }
 
   start () {
     this.next();
+    this.unlockMovement();
+    this.unlockRotation();
   }
 
   createTetronimo (x = 0, y = 0) {
@@ -26,20 +28,32 @@ export default class WorldManager {
 
   moveTetronimosRight () {
     if (this.canMoveRight()) {
-      this.falling.x += 16;
       this.lockMovement();
+      this.falling.x += 16;
     }
   }
 
   moveTetronimosLeft () {
     if (this.canMoveLeft()) {
-      this.falling.x -= 16;
       this.lockMovement();
+      this.falling.x -= 16;
     }
   }
 
+  lockRotation () {
+    this.rotationLocked = true;
+    game.time.events.add(250, () => this.unlockRotation());
+  }
+
+  unlockRotation () {
+    this.rotationLocked = false;
+  }
+
   rotateTetronimo () {
-    console.log('rotateTetronimo');
+    if (this.rotationLocked == false) {
+      this.lockRotation();
+      this.falling.rotateBricks();
+    }
   }
 
   next () {
