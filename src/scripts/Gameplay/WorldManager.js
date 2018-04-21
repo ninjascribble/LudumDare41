@@ -2,8 +2,9 @@ import DisplayObjects from '../DisplayObjects';
 
 export default class WorldManager {
   constructor(game) {
-    this.grounded = this.grounded = game.add.group(undefined, 'grounded'),
+    this.grounded = game.add.group(undefined, 'grounded'),
     this.falling = this.createTetronimo(64, 0);
+    this.exit = DisplayObjects.exit(game, 272, 272);
   }
 
   start () {

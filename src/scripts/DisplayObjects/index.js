@@ -6,13 +6,15 @@ const DISPLAY_FONT = 'Blocktopia_32pt';
 const BODY_FONT = 'Blocktopia_12pt';
 const BRICKS = 'bricks';
 const PLAYER = 'player';
+const EXIT = 'exit';
 
 export default {
   load: function load (loader) {
     loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
     loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
     game.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
-    game.load.spritesheet(PLAYER, 'player.png')
+    game.load.spritesheet(PLAYER, 'player.png');
+    game.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
@@ -43,6 +45,18 @@ export default {
 
   player: function player (game, x = 0, y = 0) {
     const sprite = new Player(game, x, y, PLAYER);
+    return sprite;
+  },
+
+  exit: function exit (game, x = 0, y = 0) {
+    const sprite = game.add.sprite(x, y, EXIT);
+    game.physics.arcade.enable(sprite);
+    sprite.body.enable = true;
+    sprite.body.immobile = true;
+    sprite.body.allowGravity = false;
+    sprite.body.collideWorldBounds = false;
+    sprite.animations.add('shine');
+    sprite.animations.play('shine', 30, true);
     return sprite;
   }
 };

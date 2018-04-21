@@ -9,12 +9,11 @@ export default class Gameplay extends Phaser.State {
 
     DisplayObjects.titleCard(game, game.width / 2, 45);
 
-    this.player = DisplayObjects.player(game, game.width / 2, 45);
-
-    game.add.existing(this.player);
-
     this.worldManager = new WorldManager(game);
     this.worldManager.start();
+
+    this.player = DisplayObjects.player(game, game.width / 2, 272);
+    game.add.existing(this.player);
   }
 
   update () {
