@@ -41,10 +41,10 @@ export default {
     const group = new Phaser.Group(game);
     group.x = x;
     group.y = y;
-    group.addChild(this.brick(game, 0, 0, 0));
-    group.addChild(this.brick(game, 16, 0, 0));
+    group.addChild(this.brick(game, 0, 16, 0));
     group.addChild(this.brick(game, 16, 16, 0));
-    group.addChild(this.brick(game, 32, 0, 0));
+    group.addChild(this.brick(game, 16, 0, 0));
+    group.addChild(this.brick(game, 32, 16, 0));
     return group;
   },
 
