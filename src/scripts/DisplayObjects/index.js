@@ -3,11 +3,13 @@ import TitleCard from './TitleCard';
 
 const DISPLAY_FONT = 'Blocktopia_32pt';
 const BODY_FONT = 'Blocktopia_12pt';
+const BRICKS = 'bricks';
 
 export default {
   load: function load (loader) {
     loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
     loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
+    game.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
@@ -20,5 +22,12 @@ export default {
 
   titleCard: function titleCard (game, x = 0, y = 0) {
     return new TitleCard(game, x, y);
+  },
+
+  brick: function brick (game, x = 0, y = 0, color = 0) {
+    const sprite = new Phaser.Sprite(game, x, y, BRICKS, color);
+    game.physics.enable(sprite);
+    sprite.body.collideWorldBounds = true;
+    return sprite;
   }
 };
