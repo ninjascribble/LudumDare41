@@ -4,7 +4,6 @@ export default class WorldManager {
   constructor(game) {
     this.grounded = this.grounded = game.add.group(undefined, 'grounded'),
     this.falling = this.createTetronimo(64, 0);
-    this.lockMove = false;
   }
 
   start () {
