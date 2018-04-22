@@ -8923,7 +8923,7 @@
 	
 	var _Gameplay2 = _interopRequireDefault(_Gameplay);
 	
-	var _Loading = __webpack_require__(338);
+	var _Loading = __webpack_require__(339);
 	
 	var _Loading2 = _interopRequireDefault(_Loading);
 	
@@ -8975,6 +8975,10 @@
 	
 	var _WorldManager2 = _interopRequireDefault(_WorldManager);
 	
+	var _StatsManager = __webpack_require__(338);
+	
+	var _StatsManager2 = _interopRequireDefault(_StatsManager);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -9005,6 +9009,7 @@
 	
 	      this.keyboardManager = new _KeyboardManager2.default(game);
 	      this.worldManager = new _WorldManager2.default(game);
+	      this.statsManager = new _StatsManager2.default(game);
 	      this.player = _DisplayObjects2.default.player(game, game.width / 2, game.height);
 	
 	      game.add.existing(this.player);
@@ -9018,6 +9023,20 @@
 	      });
 	
 	      this.worldManager.start();
+	      this.statsManager.level = this.getReadableLevel();
+	    }
+	  }, {
+	    key: 'getReadableLevel',
+	    value: function getReadableLevel() {
+	      var level = this.worldManager.currentLevel + 1;
+	      return level < 10 ? '0' + level : level;
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy() {
+	      this.worldManager.destroy();
+	      this.keyboardManager.destroy();
+	      this.statsManager.destroy();
 	    }
 	  }, {
 	    key: 'update',
@@ -9031,6 +9050,7 @@
 	          console.log('Player wins! Next level!');
 	          _this3.worldManager.stop();
 	          _this3.worldManager.start(_this3.worldManager.currentLevel + 1);
+	          _this3.statsManager.level = _this3.getReadableLevel();
 	        });
 	
 	        game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
@@ -9112,6 +9132,7 @@
 	var BRICKS = 'bricks';
 	var PLAYER = 'player';
 	var EXIT = 'exit';
+	var PANEL = 'panel';
 	
 	exports.default = {
 	  load: function load(loader) {
@@ -9120,6 +9141,7 @@
 	    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 8);
 	    loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
 	    loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
+	    loader.load.spritesheet(PANEL, 'panel.png', 48, 48, 1);
 	  },
 	
 	  displayFont: function displayFont(game) {
@@ -9207,6 +9229,35 @@
 	    sprite.animations.add('shine');
 	    sprite.animations.play('shine', 30, true);
 	    return sprite;
+	  },
+	
+	  panel: function panel(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    return game.add.image(x, y, PANEL);
+	  },
+	
+	  statPanel: function statPanel(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var panel = this.panel(game, 16, 16);
+	    var label = this.bodyFont(game, 24, 12, 'center');
+	    var content = this.displayFont(game, 24, 34, 'center');
+	
+	    panel.addChild(label);
+	    panel.addChild(content);
+	
+	    panel.setLabel = function (value) {
+	      label.text = value;
+	    };
+	
+	    panel.setContent = function (value) {
+	      content.text = value;
+	    };
+	
+	    return panel;
 	  }
 	};
 
@@ -9538,6 +9589,7 @@
 	  function KeyboardManager(game) {
 	    _classCallCheck(this, KeyboardManager);
 	
+	    this.game = game;
 	    this.keymap = game.input.keyboard.addKeys({
 	      up: Phaser.KeyCode.UP,
 	      down: Phaser.KeyCode.DOWN,
@@ -9546,14 +9598,19 @@
 	      shift: Phaser.KeyCode.SHIFT
 	    });
 	
-	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.UP);
-	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.DOWN);
-	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.LEFT);
-	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.RIGHT);
-	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.SHIFT);
+	    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.UP);
+	    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.DOWN);
+	    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.LEFT);
+	    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.RIGHT);
+	    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.SHIFT);
 	  }
 	
 	  _createClass(KeyboardManager, [{
+	    key: "destroy",
+	    value: function destroy() {
+	      this.game.input.keyboard.clearCaptures();
+	    }
+	  }, {
 	    key: "up",
 	    get: function get() {
 	      return this.keymap.up;
@@ -9875,6 +9932,52 @@
 
 /***/ },
 /* 338 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _DisplayObjects = __webpack_require__(330);
+	
+	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var StatsManager = function () {
+	  function StatsManager(game) {
+	    _classCallCheck(this, StatsManager);
+	
+	    this.game = game;
+	    this.panel = _DisplayObjects2.default.statPanel(game, 16, 16);
+	    this.panel.setLabel('Level');
+	  }
+	
+	  _createClass(StatsManager, [{
+	    key: 'destroy',
+	    value: function destroy() {
+	      this.panel.destroy();
+	    }
+	  }, {
+	    key: 'level',
+	    set: function set(value) {
+	      this.panel.setContent(value);
+	    }
+	  }]);
+	
+	  return StatsManager;
+	}();
+	
+	exports.default = StatsManager;
+
+/***/ },
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
