@@ -43,7 +43,13 @@ export default class WorldManager {
   }
 
   start (level = 0) {
-    const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
+    let exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
+
+    // Make sure level 0 doesn't start in the middle, near the player
+    if (level == 0) {
+      exitX = this.rng.pick([5, (this.game.width / 16) - 6]) * 16;
+    }
+
     const exitY = this.game.height - 32 - (16 * level);
     const exit = DisplayObjects.exit(this.game, exitX, exitY);
     const exitBrick1 = DisplayObjects.brick(this.game, exitX, exitY - 16);

@@ -75,23 +75,30 @@ export default class Gameplay extends Phaser.State {
     if (this.worldManager.running) {
       game.physics.arcade.collide(this.player, this.worldManager.walls);
       game.physics.arcade.collide(this.player, this.worldManager.grounded);
+      game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, brick) => {
+        const playerBounds = player.getBounds();
+        const brickBounds = brick.getBounds();
+
+        if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
+          player.moveLeft();
+        } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
+          player.moveRight();
+        } else {
+          console.log('Player dies! Resetting game');
+          this.player.destroy();
+          GameStateFactory.gameOver(this.state);
+        }
+      });
+
       game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
         console.log('Player wins! Next level!');
         this.nextLevel();
       })
 
-      if (this.worldManager.grounded.length  > 180) {
+      if (this.worldManager.grounded.length > 180) {
         console.log('Player dies! Resetting game');
         this.player.destroy();
         GameStateFactory.gameOver(this.state);
-      } else {
-        game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
-          if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-            console.log('Player dies! Resetting game');
-            player.destroy();
-            GameStateFactory.gameOver(this.state);
-          }
-        });
       }
     }
 
