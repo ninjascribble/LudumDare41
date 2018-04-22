@@ -53,13 +53,19 @@ export default class Gameplay extends Phaser.State {
         this.statsManager.level = this.getReadableLevel();
       })
 
-      game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
-        if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-          console.log('Player dies! Resetting game');
-          player.destroy();
-          GameStateFactory.gameplay(this.state);
-        }
-      });
+      if (this.worldManager.grounded.length  > 180) {
+        console.log('Player dies! Resetting game');
+        this.player.destroy();
+        GameStateFactory.gameOver(this.state);
+      } else {
+        game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
+          if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
+            console.log('Player dies! Resetting game');
+            player.destroy();
+            GameStateFactory.gameOver(this.state);
+          }
+        });
+      }
     }
 
 
