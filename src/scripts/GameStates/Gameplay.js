@@ -28,6 +28,12 @@ export default class Gameplay extends Phaser.State {
     });
 
     this.worldManager.start();
+    this.statsManager.level = this.getReadableLevel();
+  }
+
+  getReadableLevel () {
+    const level = this.worldManager.currentLevel + 1;
+    return (level < 10) ? '0' + level : level;
   }
 
   destroy () {
@@ -44,7 +50,7 @@ export default class Gameplay extends Phaser.State {
         console.log('Player wins! Next level!');
         this.worldManager.stop();
         this.worldManager.start(this.worldManager.currentLevel + 1);
-        this.statsManager.text = (this.worldManager.currentLevel < 10) ? '0' + this.worldManager.currentLevel : this.worldManager.currentLevel;
+        this.statsManager.level = this.getReadableLevel();
       })
 
       game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {

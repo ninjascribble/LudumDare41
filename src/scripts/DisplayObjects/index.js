@@ -77,5 +77,24 @@ export default {
 
   panel: function panel (game, x = 0, y = 0) {
     return game.add.image(x, y, PANEL);
+  },
+
+  statPanel: function statPanel (game, x = 0, y = 0) {
+    const panel = this.panel(game, 16, 16);
+    const label = this.bodyFont(game, 24, 12, 'center');
+    const content = this.displayFont(game, 24, 34, 'center');
+
+    panel.addChild(label);
+    panel.addChild(content);
+
+    panel.setLabel = (value) => {
+      label.text = value;
+    };
+
+    panel.setContent = (value) => {
+      content.text = value;
+    };
+
+    return panel;
   }
 };
