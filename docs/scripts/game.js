@@ -9025,6 +9025,7 @@
 	      var _this3 = this;
 	
 	      if (this.worldManager.running) {
+	        game.physics.arcade.collide(this.player, this.worldManager.walls);
 	        game.physics.arcade.collide(this.player, this.worldManager.grounded);
 	        game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
 	          console.log('Player wins! Next level!');
@@ -9116,7 +9117,7 @@
 	  load: function load(loader) {
 	    loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
 	    loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
-	    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
+	    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 8);
 	    loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
 	    loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
 	  },
@@ -9149,9 +9150,25 @@
 	  brick: function brick(game) {
 	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-	    var color = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+	    var color = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 7;
 	
 	    var sprite = game.add.sprite(x, y, BRICKS, color);
+	    game.physics.arcade.enable(sprite);
+	    sprite.body.enable = true;
+	    sprite.body.moves = false;
+	    sprite.body.immovable = true;
+	    sprite.body.allowGravity = false;
+	    sprite.body.collideWorldBounds = false;
+	    return sprite;
+	  },
+	
+	  wall: function wall(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	    var w = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 80;
+	    var h = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 288;
+	
+	    var sprite = game.add.tileSprite(x, y, w, h, BRICKS, 7);
 	    game.physics.arcade.enable(sprite);
 	    sprite.body.enable = true;
 	    sprite.body.moves = false;
@@ -9596,6 +9613,7 @@
 	    this.rng = game.rnd;
 	    this.tetronimos = [];
 	    this.grounded = [];
+	    this.walls = [_DisplayObjects2.default.wall(this.game, 0, 0, 80, this.game.height), _DisplayObjects2.default.wall(this.game, this.game.width - 80, 0, 80, this.game.height)];
 	    this.exit = null;
 	    this.falling = null;
 	    this.timer = game.time.create();
@@ -9607,7 +9625,7 @@
 	    value: function start() {
 	      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	
-	      var exitX = this.rng.between(0, this.game.width / 16 - 1) * 16;
+	      var exitX = this.rng.between(5, this.game.width / 16 - 6) * 16;
 	      var exitY = this.game.height - 32 - 16 * level;
 	      var tetronimo = this.createTetronimo(game.width / 2);
 	      var speed = Math.max(200, 400 - 50 * level);
@@ -9656,13 +9674,17 @@
 	      this.grounded = null;
 	      this.exit = null;
 	      this.falling = null;
+	      this.walls.forEach(function (wall) {
+	        return wall.destroy();
+	      });
+	      this.walls.length = 0;
 	      this.timer.destroy();
 	    }
 	  }, {
 	    key: 'createTetronimo',
 	    value: function createTetronimo() {
 	      var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -64;
+	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -16;
 	
 	      var type = this.rng.between(0, 6);
 	      var tetronimo = _DisplayObjects2.default.tetronimo(game, x, y, type);
@@ -9790,7 +9812,7 @@
 	    value: function canMoveLeft() {
 	      var _this6 = this;
 	
-	      var wall = new Phaser.Line(game.world.bounds.left, game.world.bounds.top, game.world.bounds.left, game.world.bounds.bottom);
+	      var wall = new Phaser.Line(this.walls[0].body.right, this.walls[0].body.top, this.walls[0].body.right, this.walls[0].body.bottom);
 	
 	      return this.falling.children.every(function (brick) {
 	        var ray1 = new Phaser.Line(brick.body.center.x - 16, brick.body.top + 1, brick.body.center.x, brick.body.top + 1);
@@ -9817,7 +9839,7 @@
 	    value: function canMoveRight() {
 	      var _this7 = this;
 	
-	      var wall = new Phaser.Line(game.world.bounds.right, game.world.bounds.top, game.world.bounds.right, game.world.bounds.bottom);
+	      var wall = new Phaser.Line(this.walls[1].body.left, this.walls[1].body.top, this.walls[1].body.left, this.walls[1].body.bottom);
 	
 	      return this.falling.children.every(function (brick) {
 	        var ray1 = new Phaser.Line(brick.body.center.x, brick.body.top + 1, brick.body.center.x + 16, brick.body.top + 1);
