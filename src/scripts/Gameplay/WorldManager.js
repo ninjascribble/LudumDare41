@@ -14,39 +14,56 @@ export default class WorldManager {
     this.falling = null;
     this.timer = game.time.create();
     this.currentLevel = 0;
+
+    // Store for caching available moves on update
+    this.availableMoves = {
+      right: false,
+      left: false,
+      down: false
+    }
   }
 
   get running () {
     return this.timer.running;
   }
 
+  get speed () {
+    return Math.max(175, 414 - (23 * this.currentLevel));
+  }
+
+  stopTimer () {
+    this.timer.stop(true);
+  }
+
+  restartTimer () {
+    this.timer.loop(this.speed, this.next, this);
+    this.unlockHorizontalMovement();
+    this.unlockRotation();
+    this.timer.start();
+  }
+
   start (level = 0) {
     const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
     const exitY = this.game.height - 32 - (16 * level);
-    const tetronimo = this.createTetronimo(game.width / 2);
-    const speed = Math.max(200, 400 - (50 * level));
+    const exit = DisplayObjects.exit(this.game, exitX, exitY);
+    const exitBrick = DisplayObjects.brick(this.game, exitX, exitY + 16);
+    const tetronimo = this.createTetronimo(this.game.width / 2);
 
     if (this.running == true) {
       this.stop();
     }
 
-    this.exit = DisplayObjects.exit(this.game, exitX, exitY);
-    this.grounded.push(DisplayObjects.brick(this.game, exitX, exitY + 16))
+    this.exit = exit;
+    this.grounded.push(exitBrick);
     this.falling = tetronimo;
-
-    this.timer.loop(speed, this.next, this);
-
-    this.unlockHorizontalMovement();
-    this.unlockVerticalMovement();
-    this.unlockRotation();
-
     this.currentLevel = level;
-    this.timer.start();
+
+    this.restartTimer();
   }
 
   stop () {
     // Stop the timer and clear all pending events
-    this.timer.stop(true);
+    this.stopTimer();
 
     // Destroy everything on screen
     this.exit.destroy();
@@ -81,11 +98,6 @@ export default class WorldManager {
     this.timer.add(100, () => this.unlockHorizontalMovement());
   }
 
-  lockVerticalMovement () {
-    this.verticalMovementLocked = true;
-    this.timer.add(35, () => this.unlockVerticalMovement());
-  }
-
   lockRotation () {
     this.rotationLocked = true;
     this.timer.add(250, () => this.unlockRotation());
@@ -95,12 +107,20 @@ export default class WorldManager {
     this.horizontalMovementLocked = false;
   }
 
-  unlockVerticalMovement () {
-    this.verticalMovementLocked = false;
-  }
-
   unlockRotation () {
     this.rotationLocked = false;
+  }
+
+  canMoveDown () {
+    return this.availableMoves.down;
+  }
+
+  canMoveLeft () {
+    return this.availableMoves.left;
+  }
+
+  canMoveRight () {
+    return this.availableMoves.right;
   }
 
   moveTetronimosRight () {
@@ -118,9 +138,10 @@ export default class WorldManager {
   }
 
   moveTetronimosDown () {
-    if (this.verticalMovementLocked == false && this.canMoveDown()) {
-      this.lockVerticalMovement();
+    if (this.canMoveDown()) {
+      this.stopTimer();
       this.falling.y += 16;
+      this.restartTimer();
     }
   }
 
@@ -143,122 +164,55 @@ export default class WorldManager {
     }
   }
 
-  canMoveDown () {
-    const floor = new Phaser.Line(
-      game.world.bounds.left,
-      game.world.bounds.bottom,
-      game.world.bounds.right,
-      game.world.bounds.bottom
-    );
+  update () {
+    var right = true;
+    var left = true;
+    var down = true;
 
-    return this.falling.children.every((brick) => {
-      const x1 = brick.body.center.x;
-      const y1 = brick.body.center.y;
-      const x2 = brick.body.center.x;
-      const y2 = brick.body.center.y + 16;
-      const ray = new Phaser.Line(x1, y1, x2, y2);
+    this.falling.children.every((brick) => {
+      const r0 = brick.body.right;
+      const r1 = r0 + 16;
 
-      if (Phaser.Line.intersects(ray, floor)) {
-        return false;
+      const l0 = brick.body.left;
+      const l1 = l0 - 16;
+
+      const b0 = brick.body.bottom;
+      const b1 = b0 + 16;
+
+      // Test against the walls first...
+      if (right == true) {
+        right = (r1 <= this.walls[1].body.left);
       }
 
-      return this.grounded.every((other) => {
-        const otherTop = new Phaser.Line(
-          other.body.left,
-          other.body.top,
-          other.body.right,
-          other.body.top
-        );
-        return !Phaser.Line.intersects(ray, otherTop);
-      });
-    });
-  }
-
-  canMoveLeft () {
-    const wall = new Phaser.Line(
-      this.walls[0].body.right,
-      this.walls[0].body.top,
-      this.walls[0].body.right,
-      this.walls[0].body.bottom
-    );
-
-    return this.falling.children.every((brick) => {
-      const ray1 = new Phaser.Line(
-        brick.body.center.x - 16,
-        brick.body.top + 1,
-        brick.body.center.x,
-        brick.body.top + 1,
-      );
-
-      const ray2 = new Phaser.Line(
-        brick.body.center.x - 16,
-        brick.body.bottom - 1,
-        brick.body.center.x,
-        brick.body.bottom - 1,
-      );
-
-      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-        return false;
+      if (left == true) {
+        left = (l1 >= this.walls[0].body.right);
       }
 
-      return this.grounded.every((other) => {
-        const otherSide = new Phaser.Line(
-          other.body.right,
-          other.body.top,
-          other.body.right,
-          other.body.bottom
-        );
+      if (down == true) {
+        down = (b1 <= this.game.world.bottom);
+      }
 
-        if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-          return false;
-        } else {
-          return true;
+      // ...then every tetronimo
+      return this.grounded.every((other) => {
+
+        // Only check movements that are still available
+        if (right == true) {
+          right = !((r1 == other.body.right) && (b0 == other.body.bottom));
         }
-      });
-    });
-  }
 
-  canMoveRight () {
-    const wall = new Phaser.Line(
-      this.walls[1].body.left,
-      this.walls[1].body.top,
-      this.walls[1].body.left,
-      this.walls[1].body.bottom
-    );
-
-    return this.falling.children.every((brick) => {
-      const ray1 = new Phaser.Line(
-        brick.body.center.x,
-        brick.body.top + 1,
-        brick.body.center.x + 16,
-        brick.body.top + 1,
-      );
-
-      const ray2 = new Phaser.Line(
-        brick.body.center.x,
-        brick.body.bottom - 1,
-        brick.body.center.x + 16,
-        brick.body.bottom - 1,
-      );
-
-      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-        return false;
-      }
-
-      return this.grounded.every((other) => {
-        const otherSide = new Phaser.Line(
-          other.body.left,
-          other.body.top,
-          other.body.left,
-          other.body.bottom
-        );
-
-        if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-          return false;
-        } else {
-          return true;
+        if (left == true) {
+          left = !((l1 == other.body.left) && (b0 == other.body.bottom));
         }
+
+        if (down == true) {
+          down = !((b1 == other.body.bottom) && (l0 == other.body.left));
+        }
+
+        // Break out of the loop early if there are no moves available
+        return (right || left || down);
       });
     });
+
+    this.availableMoves = { right, left, down };
   }
 }
