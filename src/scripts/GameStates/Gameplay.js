@@ -37,9 +37,10 @@ export default class Gameplay extends Phaser.State {
     })
 
     game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
-      if(player.body.touching.up && block.body.touching.down) {
+      if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
         console.log('Player dies! Resetting game')
         player.destroy();
+        GameStateFactory.gameplay(this.state);
       }
     });
 
