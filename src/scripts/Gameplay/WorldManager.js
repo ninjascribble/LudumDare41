@@ -17,9 +17,9 @@ export default class WorldManager {
   }
 
   start (level = 0) {
-    const exitX = this.rng.between(0, this.game.width / 16) * 16;
+    const exitX = this.rng.between(0, (this.game.width / 16) - 1) * 16;
     const exitY = this.game.height - 32 - (16 * level);
-    const tetronimo = this.createTetronimo(game.width / 2, 0);
+    const tetronimo = this.createTetronimo(game.width / 2);
     const speed = Math.max(200, 400 - (50 * level));
 
     if (this.running == true) {
@@ -63,7 +63,7 @@ export default class WorldManager {
     this.timer.destroy();
   }
 
-  createTetronimo (x = 0, y = 0) {
+  createTetronimo (x = 0, y = -64) {
     const type = this.rng.between(0, 6);
     const tetronimo = DisplayObjects.tetronimo(game, x, y, type);
     this.tetronimos.push(tetronimo);
@@ -133,7 +133,7 @@ export default class WorldManager {
         brick.moves = false;
         this.grounded.push(brick)
       });
-      this.falling = this.createTetronimo(game.width / 2, 0);
+      this.falling = this.createTetronimo(game.width / 2);
     }
   }
 
