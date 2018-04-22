@@ -5,6 +5,7 @@ export default class WorldManager {
     this.tetronimos = [];
     this.grounded = [];
     this.falling = this.createTetronimo(64, 0);
+    this.exit = DisplayObjects.exit(game, 272, 176);
   }
 
   start () {

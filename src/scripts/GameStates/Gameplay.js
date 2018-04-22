@@ -1,3 +1,4 @@
+import GameStateFactory from './index';
 import DisplayObjects from '../DisplayObjects';
 import KeyboardManager from '../Gameplay/KeyboardManager';
 import WorldManager from '../Gameplay/WorldManager';
@@ -28,11 +29,20 @@ export default class Gameplay extends Phaser.State {
   }
 
   update () {
-    if (this.worldManager.falling){
-      game.physics.arcade.collide(this.player, this.worldManager.falling.children, this.collisionHandler, null, this);
-    }
-
     game.physics.arcade.collide(this.player, this.worldManager.grounded);
+
+    game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
+      console.log('Player wins! Resetting game');
+      GameStateFactory.gameplay(this.state);
+    })
+
+    game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
+      if(player.body.touching.up && block.body.touching.down) {
+        console.log('Player dies! Resetting game')
+        player.destroy();
+      }
+    });
+
 
     // Player controls
     if (this.keyboardManager.shift.isUp) {
@@ -62,12 +72,6 @@ export default class Gameplay extends Phaser.State {
       if (this.keyboardManager.down.isDown) {
         this.worldManager.moveTetronimosDown();
       }
-    }
-  }
-
-  collisionHandler(player, block) {
-    if(player.body.touching.up && block.body.touching.down) {
-      player.destroy();
     }
   }
 }
