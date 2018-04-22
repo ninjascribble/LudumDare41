@@ -23,15 +23,17 @@ export default class WorldManager {
   start (level = 0) {
     const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
     const exitY = this.game.height - 32 - (16 * level);
+    const exit = DisplayObjects.exit(this.game, exitX, exitY);
+    const exitBrick = DisplayObjects.brick(this.game, exitX, exitY + 16);
     const tetronimo = this.createTetronimo(game.width / 2);
-    const speed = Math.max(200, 400 - (50 * level));
+    const speed = Math.max(175, 420 - (35 * level));
 
     if (this.running == true) {
       this.stop();
     }
 
-    this.exit = DisplayObjects.exit(this.game, exitX, exitY);
-    this.grounded.push(DisplayObjects.brick(this.game, exitX, exitY + 16))
+    this.exit = exit;
+    this.grounded.push(exitBrick);
     this.falling = tetronimo;
 
     this.timer.loop(speed, this.next, this);
@@ -83,7 +85,7 @@ export default class WorldManager {
 
   lockVerticalMovement () {
     this.verticalMovementLocked = true;
-    this.timer.add(35, () => this.unlockVerticalMovement());
+    this.timer.add(50, () => this.unlockVerticalMovement());
   }
 
   lockRotation () {
@@ -118,10 +120,12 @@ export default class WorldManager {
   }
 
   moveTetronimosDown () {
+    this.timer.pause();
     if (this.verticalMovementLocked == false && this.canMoveDown()) {
       this.lockVerticalMovement();
       this.falling.y += 16;
     }
+    this.timer.resume();
   }
 
   rotateTetronimo () {
@@ -155,7 +159,7 @@ export default class WorldManager {
       const x1 = brick.body.center.x;
       const y1 = brick.body.center.y;
       const x2 = brick.body.center.x;
-      const y2 = brick.body.center.y + 16;
+      const y2 = brick.body.center.y + 20;
       const ray = new Phaser.Line(x1, y1, x2, y2);
 
       if (Phaser.Line.intersects(ray, floor)) {
@@ -184,14 +188,14 @@ export default class WorldManager {
 
     return this.falling.children.every((brick) => {
       const ray1 = new Phaser.Line(
-        brick.body.center.x - 16,
+        brick.body.center.x - 20,
         brick.body.top + 1,
         brick.body.center.x,
         brick.body.top + 1,
       );
 
       const ray2 = new Phaser.Line(
-        brick.body.center.x - 16,
+        brick.body.center.x - 20,
         brick.body.bottom - 1,
         brick.body.center.x,
         brick.body.bottom - 1,
@@ -230,14 +234,14 @@ export default class WorldManager {
       const ray1 = new Phaser.Line(
         brick.body.center.x,
         brick.body.top + 1,
-        brick.body.center.x + 16,
+        brick.body.center.x + 20,
         brick.body.top + 1,
       );
 
       const ray2 = new Phaser.Line(
         brick.body.center.x,
         brick.body.bottom - 1,
-        brick.body.center.x + 16,
+        brick.body.center.x + 20,
         brick.body.bottom - 1,
       );
 
