@@ -2,11 +2,13 @@ import BitmapFont from './BitmapFont';
 import TitleCard from './TitleCard';
 import Player from './Player'
 import Tetronimo from './Tetronimo';
+
 const DISPLAY_FONT = 'Blocktopia_32pt';
 const BODY_FONT = 'Blocktopia_12pt';
 const BRICKS = 'bricks';
 const PLAYER = 'player';
 const EXIT = 'exit';
+const PANEL = 'panel';
 
 export default {
   load: function load (loader) {
@@ -15,6 +17,7 @@ export default {
     loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 8);
     loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
     loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
+    loader.load.spritesheet(PANEL, 'panel.png', 48, 48, 1);
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
@@ -70,5 +73,9 @@ export default {
     sprite.animations.add('shine');
     sprite.animations.play('shine', 30, true);
     return sprite;
+  },
+
+  panel: function panel (game, x = 0, y = 0) {
+    return game.add.image(x, y, PANEL);
   }
 };

@@ -2,6 +2,7 @@ import GameStateFactory from './index';
 import DisplayObjects from '../DisplayObjects';
 import KeyboardManager from '../Gameplay/KeyboardManager';
 import WorldManager from '../Gameplay/WorldManager';
+import StatsManager from '../Gameplay/StatsManager';
 
 export default class Gameplay extends Phaser.State {
   create () {
@@ -13,6 +14,7 @@ export default class Gameplay extends Phaser.State {
 
     this.keyboardManager = new KeyboardManager(game);
     this.worldManager = new WorldManager(game);
+    this.statsManager = new StatsManager(game);
     this.player = DisplayObjects.player(game, game.width / 2, game.height);
 
     game.add.existing(this.player);
@@ -28,6 +30,12 @@ export default class Gameplay extends Phaser.State {
     this.worldManager.start();
   }
 
+  destroy () {
+    this.worldManager.destroy();
+    this.keyboardManager.destroy();
+    this.statsManager.destroy();
+  }
+
   update () {
     if (this.worldManager.running) {
       game.physics.arcade.collide(this.player, this.worldManager.walls);
@@ -36,6 +44,7 @@ export default class Gameplay extends Phaser.State {
         console.log('Player wins! Next level!');
         this.worldManager.stop();
         this.worldManager.start(this.worldManager.currentLevel + 1);
+        this.statsManager.text = (this.worldManager.currentLevel < 10) ? '0' + this.worldManager.currentLevel : this.worldManager.currentLevel;
       })
 
       game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
