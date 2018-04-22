@@ -26,38 +26,9 @@ export default class WorldManager {
     game.time.events.add(100, () => this.unlockHorizontalMovement());
   }
 
-  unlockHorizontalMovement () {
-    this.horizontalMovementLocked = false;
-  }
-
-  moveTetronimosRight () {
-    if (this.canMoveRight()) {
-      this.lockHorizontalMovement();
-      this.falling.x += 16;
-    }
-  }
-
-  moveTetronimosLeft () {
-    if (this.canMoveLeft()) {
-      this.lockHorizontalMovement();
-      this.falling.x -= 16;
-    }
-  }
-
   lockVerticalMovement () {
     this.verticalMovementLocked = true;
     game.time.events.add(35, () => this.unlockVerticalMovement());
-  }
-
-  unlockVerticalMovement () {
-    this.verticalMovementLocked = false;
-  }
-
-  moveTetronimosDown () {
-    if (this.verticalMovementLocked == false && this.canMoveDown()) {
-      this.lockVerticalMovement();
-      this.falling.y += 16;
-    }
   }
 
   lockRotation () {
@@ -65,8 +36,37 @@ export default class WorldManager {
     game.time.events.add(250, () => this.unlockRotation());
   }
 
+  unlockHorizontalMovement () {
+    this.horizontalMovementLocked = false;
+  }
+
+  unlockVerticalMovement () {
+    this.verticalMovementLocked = false;
+  }
+
   unlockRotation () {
     this.rotationLocked = false;
+  }
+
+  moveTetronimosRight () {
+    if (this.horizontalMovementLocked == false && this.canMoveRight()) {
+      this.lockHorizontalMovement();
+      this.falling.x += 16;
+    }
+  }
+
+  moveTetronimosLeft () {
+    if (this.horizontalMovementLocked == false && this.canMoveLeft()) {
+      this.lockHorizontalMovement();
+      this.falling.x -= 16;
+    }
+  }
+
+  moveTetronimosDown () {
+    if (this.verticalMovementLocked == false && this.canMoveDown()) {
+      this.lockVerticalMovement();
+      this.falling.y += 16;
+    }
   }
 
   rotateTetronimo () {
@@ -122,10 +122,6 @@ export default class WorldManager {
   }
 
   canMoveLeft () {
-    if (this.horizontalMovementLocked) {
-      return false;
-    }
-
     const wall = new Phaser.Line(
       game.world.bounds.left,
       game.world.bounds.top,
@@ -170,10 +166,6 @@ export default class WorldManager {
   }
 
   canMoveRight () {
-    if (this.horizontalMovementLocked) {
-      return false;
-    }
-
     const wall = new Phaser.Line(
       game.world.bounds.right,
       game.world.bounds.top,

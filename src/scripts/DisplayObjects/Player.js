@@ -9,41 +9,39 @@ export default class Player extends Phaser.Sprite {
 
     game.physics.enable(this);
     this.body.drag.x = 1000;
-
     this.body.collideWorldBounds = true;
-
+    this.anchor.setTo(.5,.5);
   }
 
   moveLeft () {
-    this.move(-16, 0, LEFT, 'walkLeft');
+    this.move(LEFT, 'Run');
   }
 
   moveRight () {
-    this.move(16, 0, RIGHT, 'walkRight');
+    this.move(RIGHT, 'Run');
   }
 
   jump () {
-    this.move(0, 16, UP, 'jump');
+    this.move(UP, 'Jump');
   }
 
-  move (x, y, facing, animation) {
-  if (animation) {
-    this.animations.play(animation);
+  move (facing, animation) {
+    if (animation) {
+      this.animations.play(animation);
+    }
+
+    switch (facing) {
+      case LEFT:
+        this.scale.x = -1;
+        this.body.velocity.x = -160;
+        break;
+      case RIGHT:
+        this.scale.x = 1;
+        this.body.velocity.x = 160;
+        break;
+      case UP:
+        this.body.velocity.y = -140;
+        break;
+    }
   }
-
-  this.facing = facing;
-
-  switch (this.facing) {
-    case LEFT:
-      this.body.velocity.x = -160;
-      break;
-    case RIGHT:
-      this.body.velocity.x = 160;
-      break;
-    case UP:
-      this.body.velocity.y = -200;
-      break;
-  }
-}
-
 }

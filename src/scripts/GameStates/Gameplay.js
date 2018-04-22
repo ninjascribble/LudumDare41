@@ -1,4 +1,5 @@
 import DisplayObjects from '../DisplayObjects';
+import KeyboardManager from '../Gameplay/KeyboardManager';
 import WorldManager from '../Gameplay/WorldManager';
 
 export default class Gameplay extends Phaser.State {
@@ -9,11 +10,20 @@ export default class Gameplay extends Phaser.State {
 
     DisplayObjects.titleCard(game, game.width / 2, 45);
 
+    this.keyboardManager = new KeyboardManager(game);
+    this.worldManager = new WorldManager(game);
     this.player = DisplayObjects.player(game, game.width / 2, game.height);
 
     game.add.existing(this.player);
 
-    this.worldManager = new WorldManager(game);
+    // We don't want the player to jump more than once per keypress,
+    // so here's a listener for the "onDown" signal instead
+    this.keyboardManager.up.onDown.add(() => {
+      if (this.keyboardManager.shift.isUp && this.player.alive && this.player.body.velocity.y == 0) {
+        this.player.jump();
+      }
+    });
+
     this.worldManager.start();
   }
 
@@ -24,41 +34,40 @@ export default class Gameplay extends Phaser.State {
 
     game.physics.arcade.collide(this.player, this.worldManager.grounded);
 
-    if (this.player.alive){
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-          this.worldManager.moveTetronimosLeft();
-        } else {
-          this.player.moveLeft();
-        }
+    // Player controls
+    if (this.keyboardManager.shift.isUp) {
+      if (this.player.alive && this.keyboardManager.left.isDown) {
+        this.player.moveLeft();
       }
 
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-          this.worldManager.moveTetronimosRight();
-        } else {
-          this.player.moveRight();
-        }
+      if (this.player.alive && this.keyboardManager.right.isDown) {
+        this.player.moveRight();
+      }
+    }
+
+    // Tetronimo controls
+    if (this.keyboardManager.shift.isDown) {
+      if (this.keyboardManager.up.isDown) {
+        this.worldManager.rotateTetronimo();
       }
 
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-          this.worldManager.rotateTetronimo();
-        } else if (this.player.body.velocity.y == 0) {
-          this.player.jump();
-        }
+      if (this.keyboardManager.left.isDown) {
+        this.worldManager.moveTetronimosLeft();
       }
 
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-          this.worldManager.moveTetronimosDown();
-        }
+      if (this.keyboardManager.right.isDown) {
+        this.worldManager.moveTetronimosRight();
+      }
+
+      if (this.keyboardManager.down.isDown) {
+        this.worldManager.moveTetronimosDown();
       }
     }
   }
 
   collisionHandler(player, block) {
-    if(this.player.body.touching.up && block.body.touching.down)
-      this.player.destroy();
+    if(player.body.touching.up && block.body.touching.down) {
+      player.destroy();
+    }
   }
 }

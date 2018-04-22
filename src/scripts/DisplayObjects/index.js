@@ -11,8 +11,8 @@ export default {
   load: function load (loader) {
     loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
     loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
-    game.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
-    game.load.spritesheet(PLAYER, 'player.png')
+    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
+    loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
