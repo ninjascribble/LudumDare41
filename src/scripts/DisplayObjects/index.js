@@ -9,6 +9,9 @@ const BRICKS = 'bricks';
 const PLAYER = 'player';
 const EXIT = 'exit';
 const PANEL = 'panel';
+const INSTRUCTIONS_1 = 'instructions_1';
+const INSTRUCTIONS_2 = 'instructions_2';
+const INSTRUCTIONS_3 = 'instructions_3';
 
 export default {
   load: function load (loader) {
@@ -18,6 +21,9 @@ export default {
     loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
     loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
     loader.load.spritesheet(PANEL, 'panel.png', 48, 48, 1);
+    loader.load.spritesheet(INSTRUCTIONS_1, 'instructions_1.png', 52, 34, 1);
+    loader.load.spritesheet(INSTRUCTIONS_2, 'instructions_2.png', 128, 34, 1);
+    loader.load.spritesheet(INSTRUCTIONS_3, 'instructions_3.png', 128, 34, 1);
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
@@ -96,5 +102,31 @@ export default {
     };
 
     return panel;
+  },
+
+  instructions1: function instructions1 (game, x = 0, y = 0) {
+    const image = game.add.image(x, y, INSTRUCTIONS_1);
+    const text = this.bodyFont(game, 0, 48, 'center', 'Use the arrow keys to move Blobby to the Exit');
+    image.anchor.setTo(.5, .5);
+    text.maxWidth = 144;
+    image.addChild(text);
+    return image;
+  },
+
+  instructions2: function instructions2 (game, x = 0, y = 0) {
+    const image = game.add.image(x, y, INSTRUCTIONS_2);
+    const text = this.bodyFont(game, 0, 48, 'center', 'Hold shift to move the blocks');
+    image.anchor.setTo(.5, .5);
+    text.maxWidth = 144;
+    image.addChild(text);
+    return image;
+  },
+
+  instructions3: function instructions3 (game, x = 0, y = 0) {
+    const image = game.add.image(x, y, INSTRUCTIONS_3);
+    const text = this.displayFont(game, 0, 24, 'center', 'Good Luck!');
+    text.maxWidth = 144;
+    image.addChild(text);
+    return image;
   }
 };

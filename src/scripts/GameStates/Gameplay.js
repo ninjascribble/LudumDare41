@@ -10,8 +10,6 @@ export default class Gameplay extends Phaser.State {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 350;
 
-    DisplayObjects.titleCard(game, game.width / 2, 45);
-
     this.keyboardManager = new KeyboardManager(game);
     this.worldManager = new WorldManager(game);
     this.statsManager = new StatsManager(game);
@@ -27,8 +25,36 @@ export default class Gameplay extends Phaser.State {
       }
     });
 
-    this.worldManager.start();
+    this.nextLevel();
+  }
+
+  nextLevel () {
+    const level = this.worldManager.currentLevel + 1;
+    this.worldManager.stop();
+    this.worldManager.start(level);
     this.statsManager.level = this.getReadableLevel();
+
+    if (this.instructions && this.instructions.alive) {
+      this.instructions.destroy();
+      this.instructions = null;
+    }
+
+    switch(level) {
+      case 0:
+        this.instructions = DisplayObjects.instructions1(game, game.width / 2, 96);
+        this.instructions.sendToBack();
+        break;
+      case 1:
+        this.instructions = DisplayObjects.instructions2(game, game.width / 2, 96);
+        this.instructions.sendToBack();
+        break;
+      case 2:
+        this.instructions = DisplayObjects.instructions3(game, game.width / 2, 96);
+        this.instructions.sendToBack();
+        break;
+      default:
+        break;
+    }
   }
 
   getReadableLevel () {
@@ -40,6 +66,7 @@ export default class Gameplay extends Phaser.State {
     this.worldManager.destroy();
     this.keyboardManager.destroy();
     this.statsManager.destroy();
+    this.instructions && this.instructions.destroy();
   }
 
   update () {
@@ -50,9 +77,7 @@ export default class Gameplay extends Phaser.State {
       game.physics.arcade.collide(this.player, this.worldManager.grounded);
       game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
         console.log('Player wins! Next level!');
-        this.worldManager.stop();
-        this.worldManager.start(this.worldManager.currentLevel + 1);
-        this.statsManager.level = this.getReadableLevel();
+        this.nextLevel();
       })
 
       if (this.worldManager.grounded.length  > 180) {

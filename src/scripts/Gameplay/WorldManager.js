@@ -13,7 +13,7 @@ export default class WorldManager {
     this.exit = null;
     this.falling = null;
     this.timer = game.time.create();
-    this.currentLevel = 0;
+    this.currentLevel = -1;
 
     // Store for caching available moves on update
     this.availableMoves = {
@@ -66,7 +66,7 @@ export default class WorldManager {
     this.stopTimer();
 
     // Destroy everything on screen
-    this.exit.destroy();
+    this.exit && this.exit.destroy();
     this.tetronimos.forEach((tetronimo) => tetronimo.destroy());
     this.tetronimos.length = 0;
     this.grounded.forEach((block) => block.destroy());
