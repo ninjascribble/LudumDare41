@@ -9032,9 +9032,10 @@
 	      });
 	
 	      game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
-	        if (player.body.touching.up && block.body.touching.down) {
+	        if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
 	          console.log('Player dies! Resetting game');
 	          player.destroy();
+	          _index2.default.gameplay(_this3.state);
 	        }
 	      });
 	
@@ -9347,46 +9348,55 @@
 	    var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, game, x, y, key));
 	
 	    game.physics.enable(_this);
+	
 	    _this.body.drag.x = 1000;
 	    _this.body.collideWorldBounds = true;
+	
 	    _this.anchor.setTo(.5, .5);
+	    _this.animations.add('Idle', [2, 3], 2);
+	    _this.animations.add('Run', [0, 3], 4);
+	    _this.animations.add('JumpUp', [4, 5], 4, false);
+	    _this.animations.add('FallDown', [6], 4, false);
+	    _this.animations.add('Splat', [8, 11], 4, false);
 	    return _this;
 	  }
 	
 	  _createClass(Player, [{
 	    key: 'moveLeft',
 	    value: function moveLeft() {
-	      this.move(LEFT, 'Run');
+	      this.body.velocity.x = -160;
 	    }
 	  }, {
 	    key: 'moveRight',
 	    value: function moveRight() {
-	      this.move(RIGHT, 'Run');
+	      this.body.velocity.x = 160;
 	    }
 	  }, {
 	    key: 'jump',
 	    value: function jump() {
-	      this.move(UP, 'Jump');
+	      this.body.velocity.y = -140;
 	    }
 	  }, {
-	    key: 'move',
-	    value: function move(facing, animation) {
-	      if (animation) {
-	        this.animations.play(animation);
+	    key: 'update',
+	    value: function update() {
+	      // facing
+	      if (this.body.velocity.x < 0) {
+	        this.scale.x = -1;
+	      } else if (this.body.velocity.x > 0) {
+	        this.scale.x = 1;
 	      }
 	
-	      switch (facing) {
-	        case LEFT:
-	          this.scale.x = -1;
-	          this.body.velocity.x = -160;
-	          break;
-	        case RIGHT:
-	          this.scale.x = 1;
-	          this.body.velocity.x = 160;
-	          break;
-	        case UP:
-	          this.body.velocity.y = -140;
-	          break;
+	      // play animations
+	      if (this.body.velocity.y < 0) {
+	        this.animations.play('JumpUp');
+	      } else if (this.body.velocity.y > 0) {
+	        this.animations.play('FallDown');
+	      } else if (this.body.velocity.x < 0) {
+	        this.animations.play('Run');
+	      } else if (this.body.velocity.x > 0) {
+	        this.animations.play('Run');
+	      } else {
+	        this.animations.play('Idle');
 	      }
 	    }
 	  }]);
@@ -9582,7 +9592,7 @@
 	
 	    this.tetronimos = [];
 	    this.grounded = [];
-	    this.falling = this.createTetronimo(64, 0);
+	    this.falling = this.createTetronimo(game.width / 2, 0);
 	    this.exit = _DisplayObjects2.default.exit(game, 272, 176);
 	  }
 	
@@ -9694,10 +9704,10 @@
 	          brick.moves = false;
 	          _this4.grounded.push(brick);
 	        });
-	        this.falling = this.createTetronimo();
+	        this.falling = this.createTetronimo(game.width / 2, 0);
 	      }
 	
-	      game.time.events.add(400, function () {
+	      game.time.events.add(200, function () {
 	        return _this4.next();
 	      });
 	    }
