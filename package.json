@@ -9,7 +9,7 @@
     "lint": "eslint ./src/scripts/*",
     "clean": "rm -rf ./build",
     "destroy": "npm run clean; rm -rf ./node_modules",
-    "publish": "npm run build; rm -rf ./docs; cp -R ./build ./docs"
+    "publish": "npm run build; rm -rf ./docs; cp -R ./build ./docs; git add .; git commit -m 'publish'; git push;"
   },
   "repository": {
     "type": "git",

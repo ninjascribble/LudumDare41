@@ -1,5 +1,6 @@
 export default class KeyboardManager {
   constructor (game) {
+    this.game = game;
     this.keymap = game.input.keyboard.addKeys({
       up: Phaser.KeyCode.UP,
       down: Phaser.KeyCode.DOWN,
@@ -8,11 +9,11 @@ export default class KeyboardManager {
       shift: Phaser.KeyCode.SHIFT
     });
 
-    game.input.keyboard.addKeyCapture(Phaser.KeyCode.UP);
-    game.input.keyboard.addKeyCapture(Phaser.KeyCode.DOWN);
-    game.input.keyboard.addKeyCapture(Phaser.KeyCode.LEFT);
-    game.input.keyboard.addKeyCapture(Phaser.KeyCode.RIGHT);
-    game.input.keyboard.addKeyCapture(Phaser.KeyCode.SHIFT);
+    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.UP);
+    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.DOWN);
+    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.LEFT);
+    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.RIGHT);
+    this.game.input.keyboard.addKeyCapture(Phaser.KeyCode.SHIFT);
   }
 
   get up () {
@@ -33,5 +34,9 @@ export default class KeyboardManager {
 
   get shift () {
     return this.keymap.shift;
+  }
+
+  destroy () {
+    this.game.input.keyboard.clearCaptures();
   }
 }
