@@ -17,7 +17,7 @@ export default class WorldManager {
   }
 
   start (level = 0) {
-    const exitX = this.rng.between(0, this.game.width - 16);
+    const exitX = this.rng.between(0, this.game.width / 16) * 16;
     const exitY = this.game.height - 32 - (16 * level);
     const tetronimo = this.createTetronimo(game.width / 2, 0);
     const speed = Math.max(200, 400 - (50 * level));
@@ -27,6 +27,7 @@ export default class WorldManager {
     }
 
     this.exit = DisplayObjects.exit(this.game, exitX, exitY);
+    this.grounded.push(DisplayObjects.brick(this.game, exitX, exitY + 16))
     this.falling = tetronimo;
 
     this.timer.loop(speed, this.next, this);
