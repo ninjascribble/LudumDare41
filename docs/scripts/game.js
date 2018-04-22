@@ -9607,9 +9607,9 @@
 	    value: function start() {
 	      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	
-	      var exitX = this.rng.between(0, this.game.width - 16);
+	      var exitX = this.rng.between(0, this.game.width / 16 - 1) * 16;
 	      var exitY = this.game.height - 32 - 16 * level;
-	      var tetronimo = this.createTetronimo(game.width / 2, 0);
+	      var tetronimo = this.createTetronimo(game.width / 2);
 	      var speed = Math.max(200, 400 - 50 * level);
 	
 	      if (this.running == true) {
@@ -9617,6 +9617,7 @@
 	      }
 	
 	      this.exit = _DisplayObjects2.default.exit(this.game, exitX, exitY);
+	      this.grounded.push(_DisplayObjects2.default.brick(this.game, exitX, exitY + 16));
 	      this.falling = tetronimo;
 	
 	      this.timer.loop(speed, this.next, this);
@@ -9661,7 +9662,7 @@
 	    key: 'createTetronimo',
 	    value: function createTetronimo() {
 	      var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -64;
 	
 	      var type = this.rng.between(0, 6);
 	      var tetronimo = _DisplayObjects2.default.tetronimo(game, x, y, type);
@@ -9757,7 +9758,7 @@
 	          brick.moves = false;
 	          _this4.grounded.push(brick);
 	        });
-	        this.falling = this.createTetronimo(game.width / 2, 0);
+	        this.falling = this.createTetronimo(game.width / 2);
 	      }
 	    }
 	  }, {
