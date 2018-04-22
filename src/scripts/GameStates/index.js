@@ -1,5 +1,8 @@
 import Gameplay from './Gameplay';
 import Loading from './Loading';
+import Menu from './Menu';
+import Story from './Story';
+import GameOver from './GameOver';
 
 export default {
   loading: function loading (game) {
@@ -8,6 +11,18 @@ export default {
 
   gameplay: function gameplay (game) {
     changeState(game, Gameplay);
+  },
+
+  menu: function menu (game) {
+    changeState(game, Menu);
+  },
+
+  story: function story (game) {
+    changeState(game, Story);
+  },
+
+  gameOver: function gameOver (game) {
+    changeState(game, GameOver);
   }
 };
 
