@@ -43,7 +43,7 @@ export default class Gameplay extends Phaser.State {
 
     switch(level) {
       case 0:
-        this.instructions = DisplayObjects.instructions1(game, game.width / 2, 96);
+        this.instructions = DisplayObjects.instructions1(game, game.width / 2, 108);
         this.instructions.sendToBack();
         break;
       case 1:
