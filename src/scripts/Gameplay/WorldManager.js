@@ -2,23 +2,68 @@ import DisplayObjects from '../DisplayObjects';
 
 export default class WorldManager {
   constructor(game) {
+    this.game = game;
+    this.rng = game.rnd;
     this.tetronimos = [];
     this.grounded = [];
-    this.falling = this.createTetronimo(game.width / 2, 0);
-    this.exit = DisplayObjects.exit(game, 272, 176);
+    this.exit = null;
+    this.falling = null;
     this.timer = game.time.create();
-    this.timer.loop(200, this.next, this);
+    this.currentLevel = 0;
   }
 
-  start () {
+  get running () {
+    return this.timer.running;
+  }
+
+  start (level = 0) {
+    const exitX = this.rng.between(0, this.game.width - 16);
+    const exitY = this.game.height - 32 - (16 * level);
+    const tetronimo = this.createTetronimo(game.width / 2, 0);
+    const speed = Math.max(200, 400 - (50 * level));
+
+    if (this.running == true) {
+      this.stop();
+    }
+
+    this.exit = DisplayObjects.exit(this.game, exitX, exitY);
+    this.falling = tetronimo;
+
+    this.timer.loop(speed, this.next, this);
+
     this.unlockHorizontalMovement();
     this.unlockVerticalMovement();
     this.unlockRotation();
+
+    this.currentLevel = level;
     this.timer.start();
   }
 
+  stop () {
+    // Stop the timer and clear all pending events
+    this.timer.stop(true);
+
+    // Destroy everything on screen
+    this.exit.destroy();
+    this.tetronimos.forEach((tetronimo) => tetronimo.destroy());
+    this.tetronimos.length = 0;
+    this.grounded.forEach((block) => block.destroy());
+    this.grounded.length = 0;
+    this.falling = null;
+  }
+
+  destroy () {
+    this.stop();
+    this.rng = null;
+    this.tetronimos = null;
+    this.grounded = null;
+    this.exit = null;
+    this.falling = null;
+    this.timer.destroy();
+  }
+
   createTetronimo (x = 0, y = 0) {
-    const type = Math.floor(Math.random() * 7);
+    const type = this.rng.between(0, 6);
     const tetronimo = DisplayObjects.tetronimo(game, x, y, type);
     this.tetronimos.push(tetronimo);
     return tetronimo;

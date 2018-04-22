@@ -29,20 +29,22 @@ export default class Gameplay extends Phaser.State {
   }
 
   update () {
-    game.physics.arcade.collide(this.player, this.worldManager.grounded);
+    if (this.worldManager.running) {
+      game.physics.arcade.collide(this.player, this.worldManager.grounded);
+      game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
+        console.log('Player wins! Next level!');
+        this.worldManager.stop();
+        this.worldManager.start(this.worldManager.currentLevel + 1);
+      })
 
-    game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
-      console.log('Player wins! Resetting game');
-      GameStateFactory.gameplay(this.state);
-    })
-
-    game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
-      if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-        console.log('Player dies! Resetting game')
-        player.destroy();
-        GameStateFactory.gameplay(this.state);
-      }
-    });
+      game.physics.arcade.collide(this.player, this.worldManager.falling.children, (player, block) => {
+        if(player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
+          console.log('Player dies! Resetting game');
+          player.destroy();
+          GameStateFactory.gameplay(this.state);
+        }
+      });
+    }
 
 
     // Player controls
@@ -57,7 +59,7 @@ export default class Gameplay extends Phaser.State {
     }
 
     // Tetronimo controls
-    if (this.keyboardManager.shift.isDown) {
+    if (this.worldManager.running && this.keyboardManager.shift.isDown) {
       if (this.keyboardManager.up.isDown) {
         this.worldManager.rotateTetronimo();
       }
