@@ -45,11 +45,11 @@ export default class Gameplay extends Phaser.State {
         this.instructions.sendToBack();
         break;
       case 1:
-        this.instructions = DisplayObjects.instructions2(game, game.width / 2, 96);
+        this.instructions = DisplayObjects.instructions2(game, game.width / 2, 112);
         this.instructions.sendToBack();
         break;
       case 2:
-        this.instructions = DisplayObjects.instructions3(game, game.width / 2, 96);
+        this.instructions = DisplayObjects.instructions3(game, game.width / 2, 108);
         this.instructions.sendToBack();
         break;
       default:

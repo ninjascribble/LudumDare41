@@ -46,7 +46,8 @@ export default class WorldManager {
     const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
     const exitY = this.game.height - 32 - (16 * level);
     const exit = DisplayObjects.exit(this.game, exitX, exitY);
-    const exitBrick = DisplayObjects.brick(this.game, exitX, exitY + 16);
+    const exitBrick1 = DisplayObjects.brick(this.game, exitX, exitY - 16);
+    const exitBrick2 = DisplayObjects.brick(this.game, exitX, exitY + 16);
     const tetronimo = this.createTetronimo(this.game.width / 2);
 
     if (this.running == true) {
@@ -54,7 +55,7 @@ export default class WorldManager {
     }
 
     this.exit = exit;
-    this.grounded.push(exitBrick);
+    this.grounded.push(exitBrick1, exitBrick2);
     this.falling = tetronimo;
     this.currentLevel = level;
 
