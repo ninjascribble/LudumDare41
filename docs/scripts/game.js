@@ -8923,19 +8923,19 @@
 	
 	var _Gameplay2 = _interopRequireDefault(_Gameplay);
 	
-	var _Loading = __webpack_require__(339);
+	var _Loading = __webpack_require__(340);
 	
 	var _Loading2 = _interopRequireDefault(_Loading);
 	
-	var _Menu = __webpack_require__(340);
+	var _Menu = __webpack_require__(341);
 	
 	var _Menu2 = _interopRequireDefault(_Menu);
 	
-	var _Story = __webpack_require__(341);
+	var _Story = __webpack_require__(342);
 	
 	var _Story2 = _interopRequireDefault(_Story);
 	
-	var _GameOver = __webpack_require__(342);
+	var _GameOver = __webpack_require__(343);
 	
 	var _GameOver2 = _interopRequireDefault(_GameOver);
 	
@@ -8991,15 +8991,19 @@
 	
 	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
 	
-	var _KeyboardManager = __webpack_require__(336);
+	var _Sounds = __webpack_require__(336);
+	
+	var _Sounds2 = _interopRequireDefault(_Sounds);
+	
+	var _KeyboardManager = __webpack_require__(337);
 	
 	var _KeyboardManager2 = _interopRequireDefault(_KeyboardManager);
 	
-	var _WorldManager = __webpack_require__(337);
+	var _WorldManager = __webpack_require__(338);
 	
 	var _WorldManager2 = _interopRequireDefault(_WorldManager);
 	
-	var _StatsManager = __webpack_require__(338);
+	var _StatsManager = __webpack_require__(339);
 	
 	var _StatsManager2 = _interopRequireDefault(_StatsManager);
 	
@@ -9041,6 +9045,7 @@
 	      this.keyboardManager.up.onDown.add(function () {
 	        if (_this2.keyboardManager.shift.isUp && _this2.player.alive && _this2.player.body.velocity.y == 0) {
 	          _this2.player.jump();
+	          _Sounds2.default.jump(game);
 	        }
 	      });
 	
@@ -9065,11 +9070,11 @@
 	          this.instructions.sendToBack();
 	          break;
 	        case 1:
-	          this.instructions = _DisplayObjects2.default.instructions2(game, game.width / 2, 96);
+	          this.instructions = _DisplayObjects2.default.instructions2(game, game.width / 2, 112);
 	          this.instructions.sendToBack();
 	          break;
 	        case 2:
-	          this.instructions = _DisplayObjects2.default.instructions3(game, game.width / 2, 96);
+	          this.instructions = _DisplayObjects2.default.instructions3(game, game.width / 2, 108);
 	          this.instructions.sendToBack();
 	          break;
 	        default:
@@ -9100,23 +9105,33 @@
 	      if (this.worldManager.running) {
 	        game.physics.arcade.collide(this.player, this.worldManager.walls);
 	        game.physics.arcade.collide(this.player, this.worldManager.grounded);
+	        game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, brick) {
+	          var playerBounds = player.getBounds();
+	          var brickBounds = brick.getBounds();
+	
+	          if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
+	            player.moveLeft();
+	          } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
+	            player.moveRight();
+	          } else {
+	            console.log('Player dies! Resetting game');
+	            _this3.player.destroy();
+	            _Sounds2.default.splat(game);
+	            _index2.default.gameOver(_this3.state);
+	          }
+	        });
+	
 	        game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
 	          console.log('Player wins! Next level!');
 	          _this3.nextLevel();
+	          _Sounds2.default.nextLevel(game);
 	        });
 	
 	        if (this.worldManager.grounded.length > 180) {
 	          console.log('Player dies! Resetting game');
 	          this.player.destroy();
 	          _index2.default.gameOver(this.state);
-	        } else {
-	          game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
-	            if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-	              console.log('Player dies! Resetting game');
-	              player.destroy();
-	              _index2.default.gameOver(_this3.state);
-	            }
-	          });
+	          _Sounds2.default.splat(game);
 	        }
 	      }
 	
@@ -9678,6 +9693,45 @@
 /* 336 */
 /***/ function(module, exports) {
 
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var PLACE_BLOCK = 'place block';
+	var JUMP = 'jump';
+	var NEXT_LEVEL = 'next level';
+	var SPLAT = 'splat';
+	
+	exports.default = {
+	  load: function load(loader) {
+	    loader.load.audio(PLACE_BLOCK, 'blockStop.wav');
+	    loader.load.audio(JUMP, 'jump.wav');
+	    loader.load.audio(NEXT_LEVEL, 'nextLevel.wav');
+	    loader.load.audio(SPLAT, 'splat.wav');
+	  },
+	
+	  placeBlock: function placeBlock(game) {
+	    game.sound.play(PLACE_BLOCK);
+	  },
+	
+	  jump: function jump(game) {
+	    game.sound.play(JUMP);
+	  },
+	
+	  nextLevel: function nextLevel(game) {
+	    game.sound.play(NEXT_LEVEL);
+	  },
+	
+	  splat: function splat(game) {
+	    game.sound.play(SPLAT);
+	  }
+	};
+
+/***/ },
+/* 337 */
+/***/ function(module, exports) {
+
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -9746,7 +9800,7 @@
 	exports.default = KeyboardManager;
 
 /***/ },
-/* 337 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -9760,6 +9814,10 @@
 	var _DisplayObjects = __webpack_require__(330);
 	
 	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	var _Sounds = __webpack_require__(336);
+	
+	var _Sounds2 = _interopRequireDefault(_Sounds);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -9806,9 +9864,16 @@
 	      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	
 	      var exitX = this.rng.between(5, this.game.width / 16 - 6) * 16;
+	
+	      // Make sure level 0 doesn't start in the middle, near the player
+	      if (level == 0) {
+	        exitX = this.rng.pick([5, this.game.width / 16 - 6]) * 16;
+	      }
+	
 	      var exitY = this.game.height - 32 - 16 * level;
 	      var exit = _DisplayObjects2.default.exit(this.game, exitX, exitY);
-	      var exitBrick = _DisplayObjects2.default.brick(this.game, exitX, exitY + 16);
+	      var exitBrick1 = _DisplayObjects2.default.brick(this.game, exitX, exitY - 16);
+	      var exitBrick2 = _DisplayObjects2.default.brick(this.game, exitX, exitY + 16);
 	      var tetronimo = this.createTetronimo(this.game.width / 2);
 	
 	      if (this.running == true) {
@@ -9816,7 +9881,7 @@
 	      }
 	
 	      this.exit = exit;
-	      this.grounded.push(exitBrick);
+	      this.grounded.push(exitBrick1, exitBrick2);
 	      this.falling = tetronimo;
 	      this.currentLevel = level;
 	
@@ -10032,7 +10097,7 @@
 	exports.default = WorldManager;
 
 /***/ },
-/* 338 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10078,7 +10143,7 @@
 	exports.default = StatsManager;
 
 /***/ },
-/* 339 */
+/* 340 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10092,6 +10157,10 @@
 	var _DisplayObjects = __webpack_require__(330);
 	
 	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	var _Sounds = __webpack_require__(336);
+	
+	var _Sounds2 = _interopRequireDefault(_Sounds);
 	
 	var _index = __webpack_require__(328);
 	
@@ -10137,6 +10206,7 @@
 	    key: 'preload',
 	    value: function preload() {
 	      _DisplayObjects2.default.load(this);
+	      _Sounds2.default.load(this);
 	    }
 	
 	    // create() is automagically triggerd after preload completes
@@ -10154,7 +10224,7 @@
 	exports.default = Loading;
 
 /***/ },
-/* 340 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10224,7 +10294,7 @@
 	exports.default = Menu;
 
 /***/ },
-/* 341 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10301,7 +10371,7 @@
 	exports.default = Story;
 
 /***/ },
-/* 342 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
