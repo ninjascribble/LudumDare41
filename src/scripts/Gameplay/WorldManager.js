@@ -14,6 +14,8 @@ export default class WorldManager {
     this.falling = null;
     this.timer = game.time.create();
     this.currentLevel = 0;
+
+    window.foo = this.grounded;
   }
 
   get running () {
@@ -30,6 +32,8 @@ export default class WorldManager {
 
   restartTimer () {
     this.timer.loop(this.speed, this.next, this);
+    this.unlockHorizontalMovement();
+    this.unlockRotation();
     this.timer.start();
   }
 
@@ -47,11 +51,8 @@ export default class WorldManager {
     this.exit = exit;
     this.grounded.push(exitBrick);
     this.falling = tetronimo;
-
-    this.unlockHorizontalMovement();
-    this.unlockRotation();
-
     this.currentLevel = level;
+
     this.restartTimer();
   }
 
@@ -109,6 +110,8 @@ export default class WorldManager {
     if (this.horizontalMovementLocked == false && this.canMoveRight()) {
       this.lockHorizontalMovement();
       this.falling.x += 16;
+    } else {
+      // debugger
     }
   }
 
@@ -154,95 +157,29 @@ export default class WorldManager {
       return (bottom <= this.game.world.bottom) && this.grounded.every((other) => {
         // Since all bricks are the same width, we only need to compare the
         // positions of one horizontal side, and the vertical sides.
-        return !((left == other.body.left) && (bottom > other.body.top));
+        return !((bottom == other.body.bottom) && (left == other.body.left));
       });
     });
   }
 
   canMoveLeft () {
-    const wall = new Phaser.Line(
-      this.walls[0].body.right,
-      this.walls[0].body.top,
-      this.walls[0].body.right,
-      this.walls[0].body.bottom
-    );
-
     return this.falling.children.every((brick) => {
-      const ray1 = new Phaser.Line(
-        brick.body.center.x - 20,
-        brick.body.top + 1,
-        brick.body.center.x,
-        brick.body.top + 1,
-      );
+      const top = brick.body.top;
+      const left = brick.body.left - 16;
 
-      const ray2 = new Phaser.Line(
-        brick.body.center.x - 20,
-        brick.body.bottom - 1,
-        brick.body.center.x,
-        brick.body.bottom - 1,
-      );
-
-      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-        return false;
-      }
-
-      return this.grounded.every((other) => {
-        const otherSide = new Phaser.Line(
-          other.body.right,
-          other.body.top,
-          other.body.right,
-          other.body.bottom
-        );
-
-        if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-          return false;
-        } else {
-          return true;
-        }
+      return (left >= this.walls[0].body.right) && this.grounded.every((other) => {
+        return !((top == other.body.top) && (left == other.body.left));
       });
     });
   }
 
   canMoveRight () {
-    const wall = new Phaser.Line(
-      this.walls[1].body.left,
-      this.walls[1].body.top,
-      this.walls[1].body.left,
-      this.walls[1].body.bottom
-    );
-
     return this.falling.children.every((brick) => {
-      const ray1 = new Phaser.Line(
-        brick.body.center.x,
-        brick.body.top + 1,
-        brick.body.center.x + 20,
-        brick.body.top + 1,
-      );
+      const top = brick.body.top;
+      const right = brick.body.right + 16;
 
-      const ray2 = new Phaser.Line(
-        brick.body.center.x,
-        brick.body.bottom - 1,
-        brick.body.center.x + 20,
-        brick.body.bottom - 1,
-      );
-
-      if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-        return false;
-      }
-
-      return this.grounded.every((other) => {
-        const otherSide = new Phaser.Line(
-          other.body.left,
-          other.body.top,
-          other.body.left,
-          other.body.bottom
-        );
-
-        if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-          return false;
-        } else {
-          return true;
-        }
+      return (right <= this.walls[1].body.left) && this.grounded.every((other) => {
+        return !((top == other.body.top) && (right == other.body.right));
       });
     });
   }
