@@ -4,7 +4,7 @@ export default class WorldManager {
   constructor(game) {
     this.tetronimos = [];
     this.grounded = [];
-    this.falling = this.createTetronimo(64, 0);
+    this.falling = this.createTetronimo(game.width / 2, 0);
     this.exit = DisplayObjects.exit(game, 272, 176);
   }
 
@@ -85,7 +85,7 @@ export default class WorldManager {
         brick.moves = false;
         this.grounded.push(brick)
       });
-      this.falling = this.createTetronimo();
+      this.falling = this.createTetronimo(game.width / 2, 0);
     }
 
     game.time.events.add(400, () => this.next());
