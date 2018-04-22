@@ -15,7 +15,12 @@ export default class WorldManager {
     this.timer = game.time.create();
     this.currentLevel = 0;
 
-    window.foo = this.grounded;
+    // Store for caching available moves on update
+    this.availableMoves = {
+      right: false,
+      left: false,
+      down: false
+    }
   }
 
   get running () {
@@ -42,7 +47,7 @@ export default class WorldManager {
     const exitY = this.game.height - 32 - (16 * level);
     const exit = DisplayObjects.exit(this.game, exitX, exitY);
     const exitBrick = DisplayObjects.brick(this.game, exitX, exitY + 16);
-    const tetronimo = this.createTetronimo(game.width / 2);
+    const tetronimo = this.createTetronimo(this.game.width / 2);
 
     if (this.running == true) {
       this.stop();
@@ -106,6 +111,18 @@ export default class WorldManager {
     this.rotationLocked = false;
   }
 
+  canMoveDown () {
+    return this.availableMoves.down;
+  }
+
+  canMoveLeft () {
+    return this.availableMoves.left;
+  }
+
+  canMoveRight () {
+    return this.availableMoves.right;
+  }
+
   moveTetronimosRight () {
     if (this.horizontalMovementLocked == false && this.canMoveRight()) {
       this.lockHorizontalMovement();
@@ -149,38 +166,55 @@ export default class WorldManager {
     }
   }
 
-  canMoveDown () {
-    return this.falling.children.every((brick) => {
-      const bottom = brick.body.bottom + 16;
-      const left = brick.body.left;
+  update () {
+    var right = true;
+    var left = true;
+    var down = true;
 
-      return (bottom <= this.game.world.bottom) && this.grounded.every((other) => {
-        // Since all bricks are the same width, we only need to compare the
-        // positions of one horizontal side, and the vertical sides.
-        return !((bottom == other.body.bottom) && (left == other.body.left));
+    this.falling.children.every((brick) => {
+      const r0 = brick.body.right;
+      const r1 = r0 + 16;
+
+      const l0 = brick.body.left;
+      const l1 = l0 - 16;
+
+      const b0 = brick.body.bottom;
+      const b1 = b0 + 16;
+
+      // Test against the walls first...
+      if (right == true) {
+        right = (r1 <= this.walls[1].body.left);
+      }
+
+      if (left == true) {
+        left = (l1 >= this.walls[0].body.right);
+      }
+
+      if (down == true) {
+        down = (b1 <= this.game.world.bottom);
+      }
+
+      // ...then every tetronimo
+      return this.grounded.every((other) => {
+
+        // Only check movements that are still available
+        if (right == true) {
+          right = !((r1 == other.body.right) && (b0 == other.body.bottom));
+        }
+
+        if (left == true) {
+          left = !((l1 == other.body.left) && (b0 == other.body.bottom));
+        }
+
+        if (down == true) {
+          down = !((b1 == other.body.bottom) && (l0 == other.body.left));
+        }
+
+        // Break out of the loop early if there are no moves available
+        return (right || left || down);
       });
     });
-  }
 
-  canMoveLeft () {
-    return this.falling.children.every((brick) => {
-      const top = brick.body.top;
-      const left = brick.body.left - 16;
-
-      return (left >= this.walls[0].body.right) && this.grounded.every((other) => {
-        return !((top == other.body.top) && (left == other.body.left));
-      });
-    });
-  }
-
-  canMoveRight () {
-    return this.falling.children.every((brick) => {
-      const top = brick.body.top;
-      const right = brick.body.right + 16;
-
-      return (right <= this.walls[1].body.left) && this.grounded.every((other) => {
-        return !((top == other.body.top) && (right == other.body.right));
-      });
-    });
+    this.availableMoves = { right, left, down };
   }
 }
