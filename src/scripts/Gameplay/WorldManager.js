@@ -6,6 +6,10 @@ export default class WorldManager {
     this.rng = game.rnd;
     this.tetronimos = [];
     this.grounded = [];
+    this.walls = [
+      DisplayObjects.wall(this.game, 0, 0, 80, this.game.height),
+      DisplayObjects.wall(this.game, this.game.width - 80, 0, 80, this.game.height)
+    ];
     this.exit = null;
     this.falling = null;
     this.timer = game.time.create();
@@ -17,7 +21,7 @@ export default class WorldManager {
   }
 
   start (level = 0) {
-    const exitX = this.rng.between(0, (this.game.width / 16) - 1) * 16;
+    const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
     const exitY = this.game.height - 32 - (16 * level);
     const tetronimo = this.createTetronimo(game.width / 2);
     const speed = Math.max(200, 400 - (50 * level));
@@ -60,10 +64,12 @@ export default class WorldManager {
     this.grounded = null;
     this.exit = null;
     this.falling = null;
+    this.walls.forEach((wall) => wall.destroy());
+    this.walls.length = 0;
     this.timer.destroy();
   }
 
-  createTetronimo (x = 0, y = -64) {
+  createTetronimo (x = 0, y = -16) {
     const type = this.rng.between(0, 6);
     const tetronimo = DisplayObjects.tetronimo(game, x, y, type);
     this.tetronimos.push(tetronimo);
@@ -170,10 +176,10 @@ export default class WorldManager {
 
   canMoveLeft () {
     const wall = new Phaser.Line(
-      game.world.bounds.left,
-      game.world.bounds.top,
-      game.world.bounds.left,
-      game.world.bounds.bottom
+      this.walls[0].body.right,
+      this.walls[0].body.top,
+      this.walls[0].body.right,
+      this.walls[0].body.bottom
     );
 
     return this.falling.children.every((brick) => {
@@ -214,10 +220,10 @@ export default class WorldManager {
 
   canMoveRight () {
     const wall = new Phaser.Line(
-      game.world.bounds.right,
-      game.world.bounds.top,
-      game.world.bounds.right,
-      game.world.bounds.bottom
+      this.walls[1].body.left,
+      this.walls[1].body.top,
+      this.walls[1].body.left,
+      this.walls[1].body.bottom
     );
 
     return this.falling.children.every((brick) => {

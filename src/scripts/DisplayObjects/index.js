@@ -40,6 +40,17 @@ export default {
     return sprite;
   },
 
+  wall: function wall (game, x = 0, y = 0, w = 80, h = 288) {
+    const sprite = game.add.tileSprite(x, y, w, h, BRICKS, 0);
+    game.physics.arcade.enable(sprite);
+    sprite.body.enable = true;
+    sprite.body.moves = false;
+    sprite.body.immovable = true;
+    sprite.body.allowGravity = false;
+    sprite.body.collideWorldBounds = false;
+    return sprite;
+  },
+
   tetronimo: function tetronimo (game, x = 0, y = 0, type = 0) {
     return new Tetronimo(game, x, y, type);
   },

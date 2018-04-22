@@ -30,6 +30,7 @@ export default class Gameplay extends Phaser.State {
 
   update () {
     if (this.worldManager.running) {
+      game.physics.arcade.collide(this.player, this.worldManager.walls);
       game.physics.arcade.collide(this.player, this.worldManager.grounded);
       game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
         console.log('Player wins! Next level!');
