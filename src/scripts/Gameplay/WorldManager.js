@@ -6,13 +6,15 @@ export default class WorldManager {
     this.grounded = [];
     this.falling = this.createTetronimo(game.width / 2, 0);
     this.exit = DisplayObjects.exit(game, 272, 176);
+    this.timer = game.time.create();
+    this.timer.loop(200, this.next, this);
   }
 
   start () {
-    this.next();
     this.unlockHorizontalMovement();
     this.unlockVerticalMovement();
     this.unlockRotation();
+    this.timer.start();
   }
 
   createTetronimo (x = 0, y = 0) {
@@ -24,17 +26,17 @@ export default class WorldManager {
 
   lockHorizontalMovement () {
     this.horizontalMovementLocked = true;
-    game.time.events.add(100, () => this.unlockHorizontalMovement());
+    this.timer.add(100, () => this.unlockHorizontalMovement());
   }
 
   lockVerticalMovement () {
     this.verticalMovementLocked = true;
-    game.time.events.add(35, () => this.unlockVerticalMovement());
+    this.timer.add(35, () => this.unlockVerticalMovement());
   }
 
   lockRotation () {
     this.rotationLocked = true;
-    game.time.events.add(250, () => this.unlockRotation());
+    this.timer.add(250, () => this.unlockRotation());
   }
 
   unlockHorizontalMovement () {
@@ -87,8 +89,6 @@ export default class WorldManager {
       });
       this.falling = this.createTetronimo(game.width / 2, 0);
     }
-
-    game.time.events.add(200, () => this.next());
   }
 
   canMoveDown () {
