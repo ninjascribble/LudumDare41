@@ -8923,7 +8923,7 @@
 	
 	var _Gameplay2 = _interopRequireDefault(_Gameplay);
 	
-	var _Loading = __webpack_require__(337);
+	var _Loading = __webpack_require__(338);
 	
 	var _Loading2 = _interopRequireDefault(_Loading);
 	
@@ -8959,11 +8959,19 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	var _index = __webpack_require__(328);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
 	var _DisplayObjects = __webpack_require__(330);
 	
 	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
 	
-	var _WorldManager = __webpack_require__(336);
+	var _KeyboardManager = __webpack_require__(336);
+	
+	var _KeyboardManager2 = _interopRequireDefault(_KeyboardManager);
+	
+	var _WorldManager = __webpack_require__(337);
 	
 	var _WorldManager2 = _interopRequireDefault(_WorldManager);
 	
@@ -8987,43 +8995,76 @@
 	  _createClass(Gameplay, [{
 	    key: 'create',
 	    value: function create() {
+	      var _this2 = this;
+	
 	      this.stage.backgroundColor = '#5FCDE4';
 	      game.physics.startSystem(Phaser.Physics.ARCADE);
 	      game.physics.arcade.gravity.y = 350;
 	
 	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
 	
-	      this.player = _DisplayObjects2.default.player(game, game.width / 2, 45);
+	      this.keyboardManager = new _KeyboardManager2.default(game);
+	      this.worldManager = new _WorldManager2.default(game);
+	      this.player = _DisplayObjects2.default.player(game, game.width / 2, game.height);
 	
 	      game.add.existing(this.player);
 	
-	      this.worldManager = new _WorldManager2.default(game);
+	      // We don't want the player to jump more than once per keypress,
+	      // so here's a listener for the "onDown" signal instead
+	      this.keyboardManager.up.onDown.add(function () {
+	        if (_this2.keyboardManager.shift.isUp && _this2.player.alive && _this2.player.body.velocity.y == 0) {
+	          _this2.player.jump();
+	        }
+	      });
+	
 	      this.worldManager.start();
 	    }
 	  }, {
 	    key: 'update',
 	    value: function update() {
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-	          this.worldManager.moveTetronimosLeft();
-	        } else {
+	      var _this3 = this;
+	
+	      game.physics.arcade.collide(this.player, this.worldManager.grounded);
+	
+	      game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
+	        console.log('Player wins! Resetting game');
+	        _index2.default.gameplay(_this3.state);
+	      });
+	
+	      game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
+	        if (player.body.touching.up && block.body.touching.down) {
+	          console.log('Player dies! Resetting game');
+	          player.destroy();
+	        }
+	      });
+	
+	      // Player controls
+	      if (this.keyboardManager.shift.isUp) {
+	        if (this.player.alive && this.keyboardManager.left.isDown) {
 	          this.player.moveLeft();
 	        }
-	      }
 	
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
-	          this.worldManager.moveTetronimosRight();
-	        } else {
+	        if (this.player.alive && this.keyboardManager.right.isDown) {
 	          this.player.moveRight();
 	        }
 	      }
 	
-	      if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && this.player.body.velocity.y == 0) {
-	        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SHIFT)) {
+	      // Tetronimo controls
+	      if (this.keyboardManager.shift.isDown) {
+	        if (this.keyboardManager.up.isDown) {
 	          this.worldManager.rotateTetronimo();
-	        } else {
-	          this.player.jump();
+	        }
+	
+	        if (this.keyboardManager.left.isDown) {
+	          this.worldManager.moveTetronimosLeft();
+	        }
+	
+	        if (this.keyboardManager.right.isDown) {
+	          this.worldManager.moveTetronimosRight();
+	        }
+	
+	        if (this.keyboardManager.down.isDown) {
+	          this.worldManager.moveTetronimosDown();
 	        }
 	      }
 	    }
@@ -9066,13 +9107,15 @@
 	var BODY_FONT = 'Blocktopia_12pt';
 	var BRICKS = 'bricks';
 	var PLAYER = 'player';
+	var EXIT = 'exit';
 	
 	exports.default = {
 	  load: function load(loader) {
 	    loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
 	    loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
-	    game.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
-	    game.load.spritesheet(PLAYER, 'player.png');
+	    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
+	    loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
+	    loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
 	  },
 	
 	  displayFont: function displayFont(game) {
@@ -9108,7 +9151,8 @@
 	    var sprite = game.add.sprite(x, y, BRICKS, color);
 	    game.physics.arcade.enable(sprite);
 	    sprite.body.enable = true;
-	    sprite.body.immobile = true;
+	    sprite.body.moves = false;
+	    sprite.body.immovable = true;
 	    sprite.body.allowGravity = false;
 	    sprite.body.collideWorldBounds = false;
 	    return sprite;
@@ -9127,6 +9171,21 @@
 	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 	
 	    var sprite = new _Player2.default(game, x, y, PLAYER);
+	    return sprite;
+	  },
+	
+	  exit: function exit(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var sprite = game.add.sprite(x, y, EXIT);
+	    game.physics.arcade.enable(sprite);
+	    sprite.body.enable = true;
+	    sprite.body.immobile = true;
+	    sprite.body.allowGravity = false;
+	    sprite.body.collideWorldBounds = false;
+	    sprite.animations.add('shine');
+	    sprite.animations.play('shine', 30, true);
 	    return sprite;
 	  }
 	};
@@ -9289,46 +9348,44 @@
 	
 	    game.physics.enable(_this);
 	    _this.body.drag.x = 1000;
-	
 	    _this.body.collideWorldBounds = true;
-	
+	    _this.anchor.setTo(.5, .5);
 	    return _this;
 	  }
 	
 	  _createClass(Player, [{
 	    key: 'moveLeft',
 	    value: function moveLeft() {
-	      this.move(-16, 0, LEFT, 'walkLeft');
+	      this.move(LEFT, 'Run');
 	    }
 	  }, {
 	    key: 'moveRight',
 	    value: function moveRight() {
-	      this.move(16, 0, RIGHT, 'walkRight');
+	      this.move(RIGHT, 'Run');
 	    }
 	  }, {
 	    key: 'jump',
 	    value: function jump() {
-	      this.move(0, 16, UP, 'jump');
+	      this.move(UP, 'Jump');
 	    }
 	  }, {
 	    key: 'move',
-	    value: function move(x, y, facing, animation) {
+	    value: function move(facing, animation) {
 	      if (animation) {
 	        this.animations.play(animation);
 	      }
 	
-	      this.facing = facing;
-	
-	      switch (this.facing) {
+	      switch (facing) {
 	        case LEFT:
+	          this.scale.x = -1;
 	          this.body.velocity.x = -160;
 	          break;
 	        case RIGHT:
+	          this.scale.x = 1;
 	          this.body.velocity.x = 160;
 	          break;
 	        case UP:
-	          console.log('jump');
-	          this.body.velocity.y = -125;
+	          this.body.velocity.y = -140;
 	          break;
 	      }
 	    }
@@ -9436,6 +9493,71 @@
 
 /***/ },
 /* 336 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var KeyboardManager = function () {
+	  function KeyboardManager(game) {
+	    _classCallCheck(this, KeyboardManager);
+	
+	    this.keymap = game.input.keyboard.addKeys({
+	      up: Phaser.KeyCode.UP,
+	      down: Phaser.KeyCode.DOWN,
+	      left: Phaser.KeyCode.LEFT,
+	      right: Phaser.KeyCode.RIGHT,
+	      shift: Phaser.KeyCode.SHIFT
+	    });
+	
+	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.UP);
+	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.DOWN);
+	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.LEFT);
+	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.RIGHT);
+	    game.input.keyboard.addKeyCapture(Phaser.KeyCode.SHIFT);
+	  }
+	
+	  _createClass(KeyboardManager, [{
+	    key: "up",
+	    get: function get() {
+	      return this.keymap.up;
+	    }
+	  }, {
+	    key: "down",
+	    get: function get() {
+	      return this.keymap.down;
+	    }
+	  }, {
+	    key: "left",
+	    get: function get() {
+	      return this.keymap.left;
+	    }
+	  }, {
+	    key: "right",
+	    get: function get() {
+	      return this.keymap.right;
+	    }
+	  }, {
+	    key: "shift",
+	    get: function get() {
+	      return this.keymap.shift;
+	    }
+	  }]);
+	
+	  return KeyboardManager;
+	}();
+	
+	exports.default = KeyboardManager;
+
+/***/ },
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -9458,15 +9580,18 @@
 	  function WorldManager(game) {
 	    _classCallCheck(this, WorldManager);
 	
-	    this.grounded = this.grounded = game.add.group(undefined, 'grounded'), this.falling = this.createTetronimo(64, 0);
-	    this.lockMove = false;
+	    this.tetronimos = [];
+	    this.grounded = [];
+	    this.falling = this.createTetronimo(64, 0);
+	    this.exit = _DisplayObjects2.default.exit(game, 272, 176);
 	  }
 	
 	  _createClass(WorldManager, [{
 	    key: 'start',
 	    value: function start() {
 	      this.next();
-	      this.unlockMovement();
+	      this.unlockHorizontalMovement();
+	      this.unlockVerticalMovement();
 	      this.unlockRotation();
 	    }
 	  }, {
@@ -9475,53 +9600,79 @@
 	      var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 	
-	      return _DisplayObjects2.default.tetronimo(game, x, y, Math.floor(Math.random() * 7));
+	      var type = Math.floor(Math.random() * 7);
+	      var tetronimo = _DisplayObjects2.default.tetronimo(game, x, y, type);
+	      this.tetronimos.push(tetronimo);
+	      return tetronimo;
 	    }
 	  }, {
-	    key: 'lockMovement',
-	    value: function lockMovement() {
+	    key: 'lockHorizontalMovement',
+	    value: function lockHorizontalMovement() {
 	      var _this = this;
 	
-	      this.movementLocked = true;
+	      this.horizontalMovementLocked = true;
 	      game.time.events.add(100, function () {
-	        return _this.unlockMovement();
+	        return _this.unlockHorizontalMovement();
 	      });
 	    }
 	  }, {
-	    key: 'unlockMovement',
-	    value: function unlockMovement() {
-	      this.movementLocked = false;
+	    key: 'lockVerticalMovement',
+	    value: function lockVerticalMovement() {
+	      var _this2 = this;
+	
+	      this.verticalMovementLocked = true;
+	      game.time.events.add(35, function () {
+	        return _this2.unlockVerticalMovement();
+	      });
+	    }
+	  }, {
+	    key: 'lockRotation',
+	    value: function lockRotation() {
+	      var _this3 = this;
+	
+	      this.rotationLocked = true;
+	      game.time.events.add(250, function () {
+	        return _this3.unlockRotation();
+	      });
+	    }
+	  }, {
+	    key: 'unlockHorizontalMovement',
+	    value: function unlockHorizontalMovement() {
+	      this.horizontalMovementLocked = false;
+	    }
+	  }, {
+	    key: 'unlockVerticalMovement',
+	    value: function unlockVerticalMovement() {
+	      this.verticalMovementLocked = false;
+	    }
+	  }, {
+	    key: 'unlockRotation',
+	    value: function unlockRotation() {
+	      this.rotationLocked = false;
 	    }
 	  }, {
 	    key: 'moveTetronimosRight',
 	    value: function moveTetronimosRight() {
-	      if (this.canMoveRight()) {
-	        this.lockMovement();
+	      if (this.horizontalMovementLocked == false && this.canMoveRight()) {
+	        this.lockHorizontalMovement();
 	        this.falling.x += 16;
 	      }
 	    }
 	  }, {
 	    key: 'moveTetronimosLeft',
 	    value: function moveTetronimosLeft() {
-	      if (this.canMoveLeft()) {
-	        this.lockMovement();
+	      if (this.horizontalMovementLocked == false && this.canMoveLeft()) {
+	        this.lockHorizontalMovement();
 	        this.falling.x -= 16;
 	      }
 	    }
 	  }, {
-	    key: 'lockRotation',
-	    value: function lockRotation() {
-	      var _this2 = this;
-	
-	      this.rotationLocked = true;
-	      game.time.events.add(250, function () {
-	        return _this2.unlockRotation();
-	      });
-	    }
-	  }, {
-	    key: 'unlockRotation',
-	    value: function unlockRotation() {
-	      this.rotationLocked = false;
+	    key: 'moveTetronimosDown',
+	    value: function moveTetronimosDown() {
+	      if (this.verticalMovementLocked == false && this.canMoveDown()) {
+	        this.lockVerticalMovement();
+	        this.falling.y += 16;
+	      }
 	    }
 	  }, {
 	    key: 'rotateTetronimo',
@@ -9534,30 +9685,26 @@
 	  }, {
 	    key: 'next',
 	    value: function next() {
-	      var _this3 = this;
+	      var _this4 = this;
 	
 	      if (this.canMoveDown()) {
 	        this.falling.y += 16;
 	      } else {
-	        this.grounded.addChild(this.falling);
-	        this.falling = null;
-	      }
-	
-	      if (this.grounded.length < 24) {
-	        if (!this.falling) {
-	          this.falling = this.createTetronimo();
-	        }
-	        game.time.events.add(400, function () {
-	          return _this3.next();
+	        this.falling.children.forEach(function (brick) {
+	          brick.moves = false;
+	          _this4.grounded.push(brick);
 	        });
+	        this.falling = this.createTetronimo();
 	      }
 	
-	      this.lockMove = false;
+	      game.time.events.add(400, function () {
+	        return _this4.next();
+	      });
 	    }
 	  }, {
 	    key: 'canMoveDown',
 	    value: function canMoveDown() {
-	      var _this4 = this;
+	      var _this5 = this;
 	
 	      var floor = new Phaser.Line(game.world.bounds.left, game.world.bounds.bottom, game.world.bounds.right, game.world.bounds.bottom);
 	
@@ -9572,22 +9719,16 @@
 	          return false;
 	        }
 	
-	        return _this4.grounded.children.every(function (tetronimo) {
-	          return tetronimo.children.every(function (other) {
-	            var otherTop = new Phaser.Line(other.body.left, other.body.top, other.body.right, other.body.top);
-	            return !Phaser.Line.intersects(ray, otherTop);
-	          });
+	        return _this5.grounded.every(function (other) {
+	          var otherTop = new Phaser.Line(other.body.left, other.body.top, other.body.right, other.body.top);
+	          return !Phaser.Line.intersects(ray, otherTop);
 	        });
 	      });
 	    }
 	  }, {
 	    key: 'canMoveLeft',
 	    value: function canMoveLeft() {
-	      var _this5 = this;
-	
-	      if (this.movementLocked) {
-	        return false;
-	      }
+	      var _this6 = this;
 	
 	      var wall = new Phaser.Line(game.world.bounds.left, game.world.bounds.top, game.world.bounds.left, game.world.bounds.bottom);
 	
@@ -9600,27 +9741,21 @@
 	          return false;
 	        }
 	
-	        return _this5.grounded.children.every(function (tetronimo) {
-	          return tetronimo.children.every(function (other) {
-	            var otherSide = new Phaser.Line(other.body.right, other.body.top, other.body.right, other.body.bottom);
+	        return _this6.grounded.every(function (other) {
+	          var otherSide = new Phaser.Line(other.body.right, other.body.top, other.body.right, other.body.bottom);
 	
-	            if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-	              return false;
-	            } else {
-	              return true;
-	            }
-	          });
+	          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+	            return false;
+	          } else {
+	            return true;
+	          }
 	        });
 	      });
 	    }
 	  }, {
 	    key: 'canMoveRight',
 	    value: function canMoveRight() {
-	      var _this6 = this;
-	
-	      if (this.movementLocked) {
-	        return false;
-	      }
+	      var _this7 = this;
 	
 	      var wall = new Phaser.Line(game.world.bounds.right, game.world.bounds.top, game.world.bounds.right, game.world.bounds.bottom);
 	
@@ -9633,16 +9768,14 @@
 	          return false;
 	        }
 	
-	        return _this6.grounded.children.every(function (tetronimo) {
-	          return tetronimo.children.every(function (other) {
-	            var otherSide = new Phaser.Line(other.body.left, other.body.top, other.body.left, other.body.bottom);
+	        return _this7.grounded.every(function (other) {
+	          var otherSide = new Phaser.Line(other.body.left, other.body.top, other.body.left, other.body.bottom);
 	
-	            if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-	              return false;
-	            } else {
-	              return true;
-	            }
-	          });
+	          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
+	            return false;
+	          } else {
+	            return true;
+	          }
 	        });
 	      });
 	    }
@@ -9654,7 +9787,7 @@
 	exports.default = WorldManager;
 
 /***/ },
-/* 337 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
