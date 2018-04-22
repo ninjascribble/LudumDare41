@@ -20,13 +20,25 @@ export default class WorldManager {
     return this.timer.running;
   }
 
+  get speed () {
+    return Math.max(175, 414 - (23 * this.currentLevel));
+  }
+
+  stopTimer () {
+    this.timer.stop(true);
+  }
+
+  restartTimer () {
+    this.timer.loop(this.speed, this.next, this);
+    this.timer.start();
+  }
+
   start (level = 0) {
     const exitX = this.rng.between(5, (this.game.width / 16) - 6) * 16;
     const exitY = this.game.height - 32 - (16 * level);
     const exit = DisplayObjects.exit(this.game, exitX, exitY);
     const exitBrick = DisplayObjects.brick(this.game, exitX, exitY + 16);
     const tetronimo = this.createTetronimo(game.width / 2);
-    const speed = Math.max(175, 420 - (35 * level));
 
     if (this.running == true) {
       this.stop();
@@ -36,19 +48,16 @@ export default class WorldManager {
     this.grounded.push(exitBrick);
     this.falling = tetronimo;
 
-    this.timer.loop(speed, this.next, this);
-
     this.unlockHorizontalMovement();
-    this.unlockVerticalMovement();
     this.unlockRotation();
 
     this.currentLevel = level;
-    this.timer.start();
+    this.restartTimer();
   }
 
   stop () {
     // Stop the timer and clear all pending events
-    this.timer.stop(true);
+    this.stopTimer();
 
     // Destroy everything on screen
     this.exit.destroy();
@@ -83,11 +92,6 @@ export default class WorldManager {
     this.timer.add(100, () => this.unlockHorizontalMovement());
   }
 
-  lockVerticalMovement () {
-    this.verticalMovementLocked = true;
-    this.timer.add(50, () => this.unlockVerticalMovement());
-  }
-
   lockRotation () {
     this.rotationLocked = true;
     this.timer.add(250, () => this.unlockRotation());
@@ -95,10 +99,6 @@ export default class WorldManager {
 
   unlockHorizontalMovement () {
     this.horizontalMovementLocked = false;
-  }
-
-  unlockVerticalMovement () {
-    this.verticalMovementLocked = false;
   }
 
   unlockRotation () {
@@ -120,12 +120,11 @@ export default class WorldManager {
   }
 
   moveTetronimosDown () {
-    this.timer.pause();
-    if (this.verticalMovementLocked == false && this.canMoveDown()) {
-      this.lockVerticalMovement();
+    if (this.canMoveDown()) {
+      this.stopTimer();
       this.falling.y += 16;
+      this.restartTimer();
     }
-    this.timer.resume();
   }
 
   rotateTetronimo () {
@@ -148,32 +147,14 @@ export default class WorldManager {
   }
 
   canMoveDown () {
-    const floor = new Phaser.Line(
-      game.world.bounds.left,
-      game.world.bounds.bottom,
-      game.world.bounds.right,
-      game.world.bounds.bottom
-    );
-
     return this.falling.children.every((brick) => {
-      const x1 = brick.body.center.x;
-      const y1 = brick.body.center.y;
-      const x2 = brick.body.center.x;
-      const y2 = brick.body.center.y + 20;
-      const ray = new Phaser.Line(x1, y1, x2, y2);
+      const bottom = brick.body.bottom + 16;
+      const left = brick.body.left;
 
-      if (Phaser.Line.intersects(ray, floor)) {
-        return false;
-      }
-
-      return this.grounded.every((other) => {
-        const otherTop = new Phaser.Line(
-          other.body.left,
-          other.body.top,
-          other.body.right,
-          other.body.top
-        );
-        return !Phaser.Line.intersects(ray, otherTop);
+      return (bottom <= this.game.world.bottom) && this.grounded.every((other) => {
+        // Since all bricks are the same width, we only need to compare the
+        // positions of one horizontal side, and the vertical sides.
+        return !((left == other.body.left) && (bottom > other.body.top));
       });
     });
   }
