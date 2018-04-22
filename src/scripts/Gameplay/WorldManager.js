@@ -9,7 +9,8 @@ export default class WorldManager {
 
   start () {
     this.next();
-    this.unlockMovement();
+    this.unlockHorizontalMovement();
+    this.unlockVerticalMovement();
     this.unlockRotation();
   }
 
@@ -20,26 +21,42 @@ export default class WorldManager {
     return tetronimo;
   }
 
-  lockMovement () {
-    this.movementLocked = true;
-    game.time.events.add(100, () => this.unlockMovement());
+  lockHorizontalMovement () {
+    this.horizontalMovementLocked = true;
+    game.time.events.add(100, () => this.unlockHorizontalMovement());
   }
 
-  unlockMovement () {
-    this.movementLocked = false;
+  unlockHorizontalMovement () {
+    this.horizontalMovementLocked = false;
   }
 
   moveTetronimosRight () {
     if (this.canMoveRight()) {
-      this.lockMovement();
+      this.lockHorizontalMovement();
       this.falling.x += 16;
     }
   }
 
   moveTetronimosLeft () {
     if (this.canMoveLeft()) {
-      this.lockMovement();
+      this.lockHorizontalMovement();
       this.falling.x -= 16;
+    }
+  }
+
+  lockVerticalMovement () {
+    this.verticalMovementLocked = true;
+    game.time.events.add(35, () => this.unlockVerticalMovement());
+  }
+
+  unlockVerticalMovement () {
+    this.verticalMovementLocked = false;
+  }
+
+  moveTetronimosDown () {
+    if (this.verticalMovementLocked == false && this.canMoveDown()) {
+      this.lockVerticalMovement();
+      this.falling.y += 16;
     }
   }
 
@@ -105,7 +122,7 @@ export default class WorldManager {
   }
 
   canMoveLeft () {
-    if (this.movementLocked) {
+    if (this.horizontalMovementLocked) {
       return false;
     }
 
@@ -153,7 +170,7 @@ export default class WorldManager {
   }
 
   canMoveRight () {
-    if (this.movementLocked) {
+    if (this.horizontalMovementLocked) {
       return false;
     }
 
