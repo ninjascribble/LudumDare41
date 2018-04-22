@@ -12,7 +12,7 @@ export default {
   load: function load (loader) {
     loader.load.bitmapFont(DISPLAY_FONT, 'Blocktopia_32pt.png', 'Blocktopia_32pt.fnt');
     loader.load.bitmapFont(BODY_FONT, 'Blocktopia_12pt.png', 'Blocktopia_12pt.fnt');
-    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 7);
+    loader.load.spritesheet(BRICKS, 'bricks.png', 16, 16, 8);
     loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
     loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
   },
@@ -29,8 +29,19 @@ export default {
     return new TitleCard(game, x, y);
   },
 
-  brick: function brick (game, x = 0, y = 0, color = 0) {
+  brick: function brick (game, x = 0, y = 0, color = 7) {
     const sprite = game.add.sprite(x, y, BRICKS, color);
+    game.physics.arcade.enable(sprite);
+    sprite.body.enable = true;
+    sprite.body.moves = false;
+    sprite.body.immovable = true;
+    sprite.body.allowGravity = false;
+    sprite.body.collideWorldBounds = false;
+    return sprite;
+  },
+
+  wall: function wall (game, x = 0, y = 0, w = 80, h = 288) {
+    const sprite = game.add.tileSprite(x, y, w, h, BRICKS, 7);
     game.physics.arcade.enable(sprite);
     sprite.body.enable = true;
     sprite.body.moves = false;
