@@ -1,5 +1,6 @@
 import GameStateFactory from './index';
 import DisplayObjects from '../DisplayObjects';
+import Sounds from '../Sounds';
 import KeyboardManager from '../Gameplay/KeyboardManager';
 import WorldManager from '../Gameplay/WorldManager';
 import StatsManager from '../Gameplay/StatsManager';
@@ -22,6 +23,7 @@ export default class Gameplay extends Phaser.State {
     this.keyboardManager.up.onDown.add(() => {
       if (this.keyboardManager.shift.isUp && this.player.alive && this.player.body.velocity.y == 0) {
         this.player.jump();
+        Sounds.jump(game);
       }
     });
 
@@ -86,6 +88,7 @@ export default class Gameplay extends Phaser.State {
         } else {
           console.log('Player dies! Resetting game');
           this.player.destroy();
+          Sounds.splat(game);
           GameStateFactory.gameOver(this.state);
         }
       });
@@ -93,12 +96,14 @@ export default class Gameplay extends Phaser.State {
       game.physics.arcade.collide(this.player, this.worldManager.exit, (player, exit) => {
         console.log('Player wins! Next level!');
         this.nextLevel();
+        Sounds.nextLevel(game);
       })
 
       if (this.worldManager.grounded.length > 180) {
         console.log('Player dies! Resetting game');
         this.player.destroy();
         GameStateFactory.gameOver(this.state);
+        Sounds.splat(game);
       }
     }
 

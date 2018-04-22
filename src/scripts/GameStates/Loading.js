@@ -1,4 +1,5 @@
 import DisplayObjects from '../DisplayObjects';
+import Sounds from '../Sounds';
 import GameStateFactory from './index';
 
 export default class Loading extends Phaser.State {
@@ -22,6 +23,7 @@ export default class Loading extends Phaser.State {
 
   preload () {
     DisplayObjects.load(this);
+    Sounds.load(this);
   }
 
   // create() is automagically triggerd after preload completes

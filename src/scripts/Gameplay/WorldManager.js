@@ -1,4 +1,5 @@
 import DisplayObjects from '../DisplayObjects';
+import Sounds from '../Sounds';
 
 export default class WorldManager {
   constructor(game) {
