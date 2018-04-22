@@ -9024,20 +9024,22 @@
 	    value: function update() {
 	      var _this3 = this;
 	
-	      game.physics.arcade.collide(this.player, this.worldManager.grounded);
+	      if (this.worldManager.running) {
+	        game.physics.arcade.collide(this.player, this.worldManager.grounded);
+	        game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
+	          console.log('Player wins! Next level!');
+	          _this3.worldManager.stop();
+	          _this3.worldManager.start(_this3.worldManager.currentLevel + 1);
+	        });
 	
-	      game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
-	        console.log('Player wins! Resetting game');
-	        _index2.default.gameplay(_this3.state);
-	      });
-	
-	      game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
-	        if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-	          console.log('Player dies! Resetting game');
-	          player.destroy();
-	          _index2.default.gameplay(_this3.state);
-	        }
-	      });
+	        game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
+	          if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
+	            console.log('Player dies! Resetting game');
+	            player.destroy();
+	            _index2.default.gameplay(_this3.state);
+	          }
+	        });
+	      }
 	
 	      // Player controls
 	      if (this.keyboardManager.shift.isUp) {
@@ -9051,7 +9053,7 @@
 	      }
 	
 	      // Tetronimo controls
-	      if (this.keyboardManager.shift.isDown) {
+	      if (this.worldManager.running && this.keyboardManager.shift.isDown) {
 	        if (this.keyboardManager.up.isDown) {
 	          this.worldManager.rotateTetronimo();
 	        }
@@ -9590,19 +9592,70 @@
 	  function WorldManager(game) {
 	    _classCallCheck(this, WorldManager);
 	
+	    this.game = game;
+	    this.rng = game.rnd;
 	    this.tetronimos = [];
 	    this.grounded = [];
-	    this.falling = this.createTetronimo(game.width / 2, 0);
-	    this.exit = _DisplayObjects2.default.exit(game, 272, 176);
+	    this.exit = null;
+	    this.falling = null;
+	    this.timer = game.time.create();
+	    this.currentLevel = 0;
 	  }
 	
 	  _createClass(WorldManager, [{
 	    key: 'start',
 	    value: function start() {
-	      this.next();
+	      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+	
+	      var exitX = this.rng.between(0, this.game.width - 16);
+	      var exitY = this.game.height - 32 - 16 * level;
+	      var tetronimo = this.createTetronimo(game.width / 2, 0);
+	      var speed = Math.max(200, 400 - 50 * level);
+	
+	      if (this.running == true) {
+	        this.stop();
+	      }
+	
+	      this.exit = _DisplayObjects2.default.exit(this.game, exitX, exitY);
+	      this.falling = tetronimo;
+	
+	      this.timer.loop(speed, this.next, this);
+	
 	      this.unlockHorizontalMovement();
 	      this.unlockVerticalMovement();
 	      this.unlockRotation();
+	
+	      this.currentLevel = level;
+	      this.timer.start();
+	    }
+	  }, {
+	    key: 'stop',
+	    value: function stop() {
+	      // Stop the timer and clear all pending events
+	      this.timer.stop(true);
+	
+	      // Destroy everything on screen
+	      this.exit.destroy();
+	      this.tetronimos.forEach(function (tetronimo) {
+	        return tetronimo.destroy();
+	      });
+	      this.tetronimos.length = 0;
+	      this.grounded.forEach(function (block) {
+	        return block.destroy();
+	      });
+	      this.grounded.length = 0;
+	      this.falling = null;
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy() {
+	      this.stop();
+	      this.rng = null;
+	      this.tetronimos = null;
+	      this.grounded = null;
+	      this.exit = null;
+	      this.falling = null;
+	      this.timer.destroy();
 	    }
 	  }, {
 	    key: 'createTetronimo',
@@ -9610,7 +9663,7 @@
 	      var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	      var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 	
-	      var type = Math.floor(Math.random() * 7);
+	      var type = this.rng.between(0, 6);
 	      var tetronimo = _DisplayObjects2.default.tetronimo(game, x, y, type);
 	      this.tetronimos.push(tetronimo);
 	      return tetronimo;
@@ -9621,7 +9674,7 @@
 	      var _this = this;
 	
 	      this.horizontalMovementLocked = true;
-	      game.time.events.add(100, function () {
+	      this.timer.add(100, function () {
 	        return _this.unlockHorizontalMovement();
 	      });
 	    }
@@ -9631,7 +9684,7 @@
 	      var _this2 = this;
 	
 	      this.verticalMovementLocked = true;
-	      game.time.events.add(35, function () {
+	      this.timer.add(35, function () {
 	        return _this2.unlockVerticalMovement();
 	      });
 	    }
@@ -9641,7 +9694,7 @@
 	      var _this3 = this;
 	
 	      this.rotationLocked = true;
-	      game.time.events.add(250, function () {
+	      this.timer.add(250, function () {
 	        return _this3.unlockRotation();
 	      });
 	    }
@@ -9706,10 +9759,6 @@
 	        });
 	        this.falling = this.createTetronimo(game.width / 2, 0);
 	      }
-	
-	      game.time.events.add(200, function () {
-	        return _this4.next();
-	      });
 	    }
 	  }, {
 	    key: 'canMoveDown',
@@ -9788,6 +9837,11 @@
 	          }
 	        });
 	      });
+	    }
+	  }, {
+	    key: 'running',
+	    get: function get() {
+	      return this.timer.running;
 	    }
 	  }]);
 	
