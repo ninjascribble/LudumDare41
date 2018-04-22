@@ -127,8 +127,6 @@ export default class WorldManager {
     if (this.horizontalMovementLocked == false && this.canMoveRight()) {
       this.lockHorizontalMovement();
       this.falling.x += 16;
-    } else {
-      // debugger
     }
   }
 
