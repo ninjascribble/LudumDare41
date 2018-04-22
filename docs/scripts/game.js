@@ -8927,6 +8927,18 @@
 	
 	var _Loading2 = _interopRequireDefault(_Loading);
 	
+	var _Menu = __webpack_require__(340);
+	
+	var _Menu2 = _interopRequireDefault(_Menu);
+	
+	var _Story = __webpack_require__(341);
+	
+	var _Story2 = _interopRequireDefault(_Story);
+	
+	var _GameOver = __webpack_require__(342);
+	
+	var _GameOver2 = _interopRequireDefault(_GameOver);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	exports.default = {
@@ -8936,6 +8948,18 @@
 	
 	  gameplay: function gameplay(game) {
 	    changeState(game, _Gameplay2.default);
+	  },
+	
+	  menu: function menu(game) {
+	    changeState(game, _Menu2.default);
+	  },
+	
+	  story: function story(game) {
+	    changeState(game, _Story2.default);
+	  },
+	
+	  gameOver: function gameOver(game) {
+	    changeState(game, _GameOver2.default);
 	  }
 	};
 	
@@ -9005,8 +9029,6 @@
 	      game.physics.startSystem(Phaser.Physics.ARCADE);
 	      game.physics.arcade.gravity.y = 350;
 	
-	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
-	
 	      this.keyboardManager = new _KeyboardManager2.default(game);
 	      this.worldManager = new _WorldManager2.default(game);
 	      this.statsManager = new _StatsManager2.default(game);
@@ -9022,8 +9044,37 @@
 	        }
 	      });
 	
-	      this.worldManager.start();
+	      this.nextLevel();
+	    }
+	  }, {
+	    key: 'nextLevel',
+	    value: function nextLevel() {
+	      var level = this.worldManager.currentLevel + 1;
+	      this.worldManager.stop();
+	      this.worldManager.start(level);
 	      this.statsManager.level = this.getReadableLevel();
+	
+	      if (this.instructions && this.instructions.alive) {
+	        this.instructions.destroy();
+	        this.instructions = null;
+	      }
+	
+	      switch (level) {
+	        case 0:
+	          this.instructions = _DisplayObjects2.default.instructions1(game, game.width / 2, 96);
+	          this.instructions.sendToBack();
+	          break;
+	        case 1:
+	          this.instructions = _DisplayObjects2.default.instructions2(game, game.width / 2, 96);
+	          this.instructions.sendToBack();
+	          break;
+	        case 2:
+	          this.instructions = _DisplayObjects2.default.instructions3(game, game.width / 2, 96);
+	          this.instructions.sendToBack();
+	          break;
+	        default:
+	          break;
+	      }
 	    }
 	  }, {
 	    key: 'getReadableLevel',
@@ -9037,29 +9088,36 @@
 	      this.worldManager.destroy();
 	      this.keyboardManager.destroy();
 	      this.statsManager.destroy();
+	      this.instructions && this.instructions.destroy();
 	    }
 	  }, {
 	    key: 'update',
 	    value: function update() {
 	      var _this3 = this;
 	
+	      this.worldManager.update();
+	
 	      if (this.worldManager.running) {
 	        game.physics.arcade.collide(this.player, this.worldManager.walls);
 	        game.physics.arcade.collide(this.player, this.worldManager.grounded);
 	        game.physics.arcade.collide(this.player, this.worldManager.exit, function (player, exit) {
 	          console.log('Player wins! Next level!');
-	          _this3.worldManager.stop();
-	          _this3.worldManager.start(_this3.worldManager.currentLevel + 1);
-	          _this3.statsManager.level = _this3.getReadableLevel();
+	          _this3.nextLevel();
 	        });
 	
-	        game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
-	          if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
-	            console.log('Player dies! Resetting game');
-	            player.destroy();
-	            _index2.default.gameplay(_this3.state);
-	          }
-	        });
+	        if (this.worldManager.grounded.length > 180) {
+	          console.log('Player dies! Resetting game');
+	          this.player.destroy();
+	          _index2.default.gameOver(this.state);
+	        } else {
+	          game.physics.arcade.collide(this.player, this.worldManager.falling.children, function (player, block) {
+	            if (player.body.velocity.y == 0 && player.body.touching.up && block.body.touching.down) {
+	              console.log('Player dies! Resetting game');
+	              player.destroy();
+	              _index2.default.gameOver(_this3.state);
+	            }
+	          });
+	        }
 	      }
 	
 	      // Player controls
@@ -9133,6 +9191,9 @@
 	var PLAYER = 'player';
 	var EXIT = 'exit';
 	var PANEL = 'panel';
+	var INSTRUCTIONS_1 = 'instructions_1';
+	var INSTRUCTIONS_2 = 'instructions_2';
+	var INSTRUCTIONS_3 = 'instructions_3';
 	
 	exports.default = {
 	  load: function load(loader) {
@@ -9142,6 +9203,9 @@
 	    loader.load.atlasJSONArray(PLAYER, 'blobby.png', 'blobby.json');
 	    loader.load.spritesheet(EXIT, 'exit.png', 16, 16, 8);
 	    loader.load.spritesheet(PANEL, 'panel.png', 48, 48, 1);
+	    loader.load.spritesheet(INSTRUCTIONS_1, 'instructions_1.png', 52, 34, 1);
+	    loader.load.spritesheet(INSTRUCTIONS_2, 'instructions_2.png', 128, 34, 1);
+	    loader.load.spritesheet(INSTRUCTIONS_3, 'instructions_3.png', 128, 34, 1);
 	  },
 	
 	  displayFont: function displayFont(game) {
@@ -9258,6 +9322,41 @@
 	    };
 	
 	    return panel;
+	  },
+	
+	  instructions1: function instructions1(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var image = game.add.image(x, y, INSTRUCTIONS_1);
+	    var text = this.bodyFont(game, 0, 48, 'center', 'Use the arrow keys to move Blobby to the Exit');
+	    image.anchor.setTo(.5, .5);
+	    text.maxWidth = 144;
+	    image.addChild(text);
+	    return image;
+	  },
+	
+	  instructions2: function instructions2(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var image = game.add.image(x, y, INSTRUCTIONS_2);
+	    var text = this.bodyFont(game, 0, 48, 'center', 'Hold shift to move the blocks');
+	    image.anchor.setTo(.5, .5);
+	    text.maxWidth = 144;
+	    image.addChild(text);
+	    return image;
+	  },
+	
+	  instructions3: function instructions3(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var image = game.add.image(x, y, INSTRUCTIONS_3);
+	    var text = this.displayFont(game, 0, 24, 'center', 'Good Luck!');
+	    text.maxWidth = 144;
+	    image.addChild(text);
+	    return image;
 	  }
 	};
 
@@ -9384,7 +9483,11 @@
 	});
 	exports.default = {
 	  GAME_TITLE: 'Ludum Dare 41!',
-	  STORY: 'Theme: Combine 2 Incompatible Genres'
+	  STORY: 'Theme: Combine 2 Incompatible Genres',
+	  START: 'Press ENTER to Play!',
+	  INSTRUCTIONS: 'Press Shift + left/right arrow to move the blocks\nand shift + up arrow to rotate them\n\nPress the arrow keys without shift to move the blob\n\nClimb the blocks to reach the door',
+	  RESTART: 'Press enter to try again!',
+	  GAMEOVER: 'GAME OVER'
 	};
 
 /***/ },
@@ -9674,44 +9777,59 @@
 	    this.exit = null;
 	    this.falling = null;
 	    this.timer = game.time.create();
-	    this.currentLevel = 0;
+	    this.currentLevel = -1;
+	
+	    // Store for caching available moves on update
+	    this.availableMoves = {
+	      right: false,
+	      left: false,
+	      down: false
+	    };
 	  }
 	
 	  _createClass(WorldManager, [{
+	    key: 'stopTimer',
+	    value: function stopTimer() {
+	      this.timer.stop(true);
+	    }
+	  }, {
+	    key: 'restartTimer',
+	    value: function restartTimer() {
+	      this.timer.loop(this.speed, this.next, this);
+	      this.unlockHorizontalMovement();
+	      this.unlockRotation();
+	      this.timer.start();
+	    }
+	  }, {
 	    key: 'start',
 	    value: function start() {
 	      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	
 	      var exitX = this.rng.between(5, this.game.width / 16 - 6) * 16;
 	      var exitY = this.game.height - 32 - 16 * level;
-	      var tetronimo = this.createTetronimo(game.width / 2);
-	      var speed = Math.max(200, 400 - 50 * level);
+	      var exit = _DisplayObjects2.default.exit(this.game, exitX, exitY);
+	      var exitBrick = _DisplayObjects2.default.brick(this.game, exitX, exitY + 16);
+	      var tetronimo = this.createTetronimo(this.game.width / 2);
 	
 	      if (this.running == true) {
 	        this.stop();
 	      }
 	
-	      this.exit = _DisplayObjects2.default.exit(this.game, exitX, exitY);
-	      this.grounded.push(_DisplayObjects2.default.brick(this.game, exitX, exitY + 16));
+	      this.exit = exit;
+	      this.grounded.push(exitBrick);
 	      this.falling = tetronimo;
-	
-	      this.timer.loop(speed, this.next, this);
-	
-	      this.unlockHorizontalMovement();
-	      this.unlockVerticalMovement();
-	      this.unlockRotation();
-	
 	      this.currentLevel = level;
-	      this.timer.start();
+	
+	      this.restartTimer();
 	    }
 	  }, {
 	    key: 'stop',
 	    value: function stop() {
 	      // Stop the timer and clear all pending events
-	      this.timer.stop(true);
+	      this.stopTimer();
 	
 	      // Destroy everything on screen
-	      this.exit.destroy();
+	      this.exit && this.exit.destroy();
 	      this.tetronimos.forEach(function (tetronimo) {
 	        return tetronimo.destroy();
 	      });
@@ -9759,23 +9877,13 @@
 	      });
 	    }
 	  }, {
-	    key: 'lockVerticalMovement',
-	    value: function lockVerticalMovement() {
-	      var _this2 = this;
-	
-	      this.verticalMovementLocked = true;
-	      this.timer.add(35, function () {
-	        return _this2.unlockVerticalMovement();
-	      });
-	    }
-	  }, {
 	    key: 'lockRotation',
 	    value: function lockRotation() {
-	      var _this3 = this;
+	      var _this2 = this;
 	
 	      this.rotationLocked = true;
 	      this.timer.add(250, function () {
-	        return _this3.unlockRotation();
+	        return _this2.unlockRotation();
 	      });
 	    }
 	  }, {
@@ -9784,14 +9892,24 @@
 	      this.horizontalMovementLocked = false;
 	    }
 	  }, {
-	    key: 'unlockVerticalMovement',
-	    value: function unlockVerticalMovement() {
-	      this.verticalMovementLocked = false;
-	    }
-	  }, {
 	    key: 'unlockRotation',
 	    value: function unlockRotation() {
 	      this.rotationLocked = false;
+	    }
+	  }, {
+	    key: 'canMoveDown',
+	    value: function canMoveDown() {
+	      return this.availableMoves.down;
+	    }
+	  }, {
+	    key: 'canMoveLeft',
+	    value: function canMoveLeft() {
+	      return this.availableMoves.left;
+	    }
+	  }, {
+	    key: 'canMoveRight',
+	    value: function canMoveRight() {
+	      return this.availableMoves.right;
 	    }
 	  }, {
 	    key: 'moveTetronimosRight',
@@ -9812,9 +9930,10 @@
 	  }, {
 	    key: 'moveTetronimosDown',
 	    value: function moveTetronimosDown() {
-	      if (this.verticalMovementLocked == false && this.canMoveDown()) {
-	        this.lockVerticalMovement();
+	      if (this.canMoveDown()) {
+	        this.stopTimer();
 	        this.falling.y += 16;
+	        this.restartTimer();
 	      }
 	    }
 	  }, {
@@ -9828,100 +9947,82 @@
 	  }, {
 	    key: 'next',
 	    value: function next() {
-	      var _this4 = this;
+	      var _this3 = this;
 	
 	      if (this.canMoveDown()) {
 	        this.falling.y += 16;
 	      } else {
 	        this.falling.children.forEach(function (brick) {
 	          brick.moves = false;
-	          _this4.grounded.push(brick);
+	          _this3.grounded.push(brick);
 	        });
 	        this.falling = this.createTetronimo(game.width / 2);
 	      }
 	    }
 	  }, {
-	    key: 'canMoveDown',
-	    value: function canMoveDown() {
-	      var _this5 = this;
+	    key: 'update',
+	    value: function update() {
+	      var _this4 = this;
 	
-	      var floor = new Phaser.Line(game.world.bounds.left, game.world.bounds.bottom, game.world.bounds.right, game.world.bounds.bottom);
+	      var right = true;
+	      var left = true;
+	      var down = true;
 	
-	      return this.falling.children.every(function (brick) {
-	        var x1 = brick.body.center.x;
-	        var y1 = brick.body.center.y;
-	        var x2 = brick.body.center.x;
-	        var y2 = brick.body.center.y + 16;
-	        var ray = new Phaser.Line(x1, y1, x2, y2);
+	      this.falling.children.every(function (brick) {
+	        var r0 = brick.body.right;
+	        var r1 = r0 + 16;
 	
-	        if (Phaser.Line.intersects(ray, floor)) {
-	          return false;
+	        var l0 = brick.body.left;
+	        var l1 = l0 - 16;
+	
+	        var b0 = brick.body.bottom;
+	        var b1 = b0 + 16;
+	
+	        // Test against the walls first...
+	        if (right == true) {
+	          right = r1 <= _this4.walls[1].body.left;
 	        }
 	
-	        return _this5.grounded.every(function (other) {
-	          var otherTop = new Phaser.Line(other.body.left, other.body.top, other.body.right, other.body.top);
-	          return !Phaser.Line.intersects(ray, otherTop);
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'canMoveLeft',
-	    value: function canMoveLeft() {
-	      var _this6 = this;
-	
-	      var wall = new Phaser.Line(this.walls[0].body.right, this.walls[0].body.top, this.walls[0].body.right, this.walls[0].body.bottom);
-	
-	      return this.falling.children.every(function (brick) {
-	        var ray1 = new Phaser.Line(brick.body.center.x - 16, brick.body.top + 1, brick.body.center.x, brick.body.top + 1);
-	
-	        var ray2 = new Phaser.Line(brick.body.center.x - 16, brick.body.bottom - 1, brick.body.center.x, brick.body.bottom - 1);
-	
-	        if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-	          return false;
+	        if (left == true) {
+	          left = l1 >= _this4.walls[0].body.right;
 	        }
 	
-	        return _this6.grounded.every(function (other) {
-	          var otherSide = new Phaser.Line(other.body.right, other.body.top, other.body.right, other.body.bottom);
+	        if (down == true) {
+	          down = b1 <= _this4.game.world.bottom;
+	        }
 	
-	          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-	            return false;
-	          } else {
-	            return true;
+	        // ...then every tetronimo
+	        return _this4.grounded.every(function (other) {
+	
+	          // Only check movements that are still available
+	          if (right == true) {
+	            right = !(r1 == other.body.right && b0 == other.body.bottom);
 	          }
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'canMoveRight',
-	    value: function canMoveRight() {
-	      var _this7 = this;
 	
-	      var wall = new Phaser.Line(this.walls[1].body.left, this.walls[1].body.top, this.walls[1].body.left, this.walls[1].body.bottom);
-	
-	      return this.falling.children.every(function (brick) {
-	        var ray1 = new Phaser.Line(brick.body.center.x, brick.body.top + 1, brick.body.center.x + 16, brick.body.top + 1);
-	
-	        var ray2 = new Phaser.Line(brick.body.center.x, brick.body.bottom - 1, brick.body.center.x + 16, brick.body.bottom - 1);
-	
-	        if (Phaser.Line.intersects(ray1, wall) || Phaser.Line.intersects(ray2, wall)) {
-	          return false;
-	        }
-	
-	        return _this7.grounded.every(function (other) {
-	          var otherSide = new Phaser.Line(other.body.left, other.body.top, other.body.left, other.body.bottom);
-	
-	          if (Phaser.Line.intersects(ray1, otherSide) || Phaser.Line.intersects(ray2, otherSide)) {
-	            return false;
-	          } else {
-	            return true;
+	          if (left == true) {
+	            left = !(l1 == other.body.left && b0 == other.body.bottom);
 	          }
+	
+	          if (down == true) {
+	            down = !(b1 == other.body.bottom && l0 == other.body.left);
+	          }
+	
+	          // Break out of the loop early if there are no moves available
+	          return right || left || down;
 	        });
 	      });
+	
+	      this.availableMoves = { right: right, left: left, down: down };
 	    }
 	  }, {
 	    key: 'running',
 	    get: function get() {
 	      return this.timer.running;
+	    }
+	  }, {
+	    key: 'speed',
+	    get: function get() {
+	      return Math.max(175, 414 - 23 * this.currentLevel);
 	    }
 	  }]);
 	
@@ -10051,6 +10152,230 @@
 	}(Phaser.State);
 	
 	exports.default = Loading;
+
+/***/ },
+/* 340 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _DisplayObjects = __webpack_require__(330);
+	
+	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	var _index = __webpack_require__(328);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
+	var _Enums = __webpack_require__(333);
+	
+	var _Enums2 = _interopRequireDefault(_Enums);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Menu = function (_Phaser$State) {
+	  _inherits(Menu, _Phaser$State);
+	
+	  function Menu() {
+	    _classCallCheck(this, Menu);
+	
+	    return _possibleConstructorReturn(this, (Menu.__proto__ || Object.getPrototypeOf(Menu)).apply(this, arguments));
+	  }
+	
+	  _createClass(Menu, [{
+	    key: 'create',
+	    value: function create() {
+	      this.stage.backgroundColor = '#5FCDE4';
+	
+	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
+	
+	      game.add.existing(this.actionText());
+	    }
+	  }, {
+	    key: 'actionText',
+	    value: function actionText() {
+	      var text = _DisplayObjects2.default.bodyFont(game, game.width / 2, game.height / 2, 'center', _Enums2.default.START);
+	      return text;
+	    }
+	  }, {
+	    key: 'update',
+	    value: function update() {
+	      if (this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+	        _index2.default.story(this.state);
+	      }
+	    }
+	  }]);
+	
+	  return Menu;
+	}(Phaser.State);
+	
+	exports.default = Menu;
+
+/***/ },
+/* 341 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _DisplayObjects = __webpack_require__(330);
+	
+	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	var _index = __webpack_require__(328);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
+	var _Enums = __webpack_require__(333);
+	
+	var _Enums2 = _interopRequireDefault(_Enums);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Story = function (_Phaser$State) {
+	  _inherits(Story, _Phaser$State);
+	
+	  function Story() {
+	    _classCallCheck(this, Story);
+	
+	    return _possibleConstructorReturn(this, (Story.__proto__ || Object.getPrototypeOf(Story)).apply(this, arguments));
+	  }
+	
+	  _createClass(Story, [{
+	    key: 'create',
+	    value: function create() {
+	      this.stage.backgroundColor = '#5FCDE4';
+	
+	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
+	
+	      game.add.existing(this.instructionText());
+	      game.add.existing(this.actionText());
+	    }
+	  }, {
+	    key: 'instructionText',
+	    value: function instructionText() {
+	      var text = _DisplayObjects2.default.bodyFont(game, game.width / 2, game.height / 2, 'center', _Enums2.default.INSTRUCTIONS);
+	      return text;
+	    }
+	  }, {
+	    key: 'actionText',
+	    value: function actionText() {
+	      var text = _DisplayObjects2.default.bodyFont(game, game.width / 2, game.height * 3 / 4, 'center', _Enums2.default.START);
+	      return text;
+	    }
+	  }, {
+	    key: 'update',
+	    value: function update() {
+	      if (this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+	        _index2.default.gameplay(this.state);
+	      }
+	    }
+	  }]);
+	
+	  return Story;
+	}(Phaser.State);
+	
+	exports.default = Story;
+
+/***/ },
+/* 342 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _DisplayObjects = __webpack_require__(330);
+	
+	var _DisplayObjects2 = _interopRequireDefault(_DisplayObjects);
+	
+	var _index = __webpack_require__(328);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
+	var _Enums = __webpack_require__(333);
+	
+	var _Enums2 = _interopRequireDefault(_Enums);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var GameOver = function (_Phaser$State) {
+	  _inherits(GameOver, _Phaser$State);
+	
+	  function GameOver() {
+	    _classCallCheck(this, GameOver);
+	
+	    return _possibleConstructorReturn(this, (GameOver.__proto__ || Object.getPrototypeOf(GameOver)).apply(this, arguments));
+	  }
+	
+	  _createClass(GameOver, [{
+	    key: 'create',
+	    value: function create() {
+	      this.stage.backgroundColor = '#5FCDE4';
+	
+	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
+	
+	      game.add.existing(this.gameOverText());
+	      game.add.existing(this.restartText());
+	    }
+	  }, {
+	    key: 'gameOverText',
+	    value: function gameOverText() {
+	      var text = _DisplayObjects2.default.displayFont(game, game.width / 2, game.height / 2, 'center', _Enums2.default.GAMEOVER);
+	      return text;
+	    }
+	  }, {
+	    key: 'restartText',
+	    value: function restartText() {
+	      var text = _DisplayObjects2.default.bodyFont(game, game.width / 2, game.height * 3 / 4, 'center', _Enums2.default.RESTART);
+	      return text;
+	    }
+	  }, {
+	    key: 'update',
+	    value: function update() {
+	      if (this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+	        _index2.default.gameplay(this.state);
+	      }
+	    }
+	  }]);
+	
+	  return GameOver;
+	}(Phaser.State);
+	
+	exports.default = GameOver;
 
 /***/ }
 /******/ ]);
