@@ -88,7 +88,7 @@ export default class WorldManager {
       this.falling = this.createTetronimo(game.width / 2, 0);
     }
 
-    game.time.events.add(400, () => this.next());
+    game.time.events.add(200, () => this.next());
   }
 
   canMoveDown () {
