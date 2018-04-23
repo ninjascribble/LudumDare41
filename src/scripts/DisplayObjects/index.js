@@ -12,6 +12,7 @@ const PANEL = 'panel';
 const INSTRUCTIONS_1 = 'instructions_1';
 const INSTRUCTIONS_2 = 'instructions_2';
 const INSTRUCTIONS_3 = 'instructions_3';
+const GAME_OVER = 'gameover';
 
 export default {
   load: function load (loader) {
@@ -24,6 +25,7 @@ export default {
     loader.load.spritesheet(INSTRUCTIONS_1, 'instructions_1.png', 52, 34, 1);
     loader.load.spritesheet(INSTRUCTIONS_2, 'instructions_2.png', 128, 34, 1);
     loader.load.spritesheet(INSTRUCTIONS_3, 'instructions_3.png', 128, 34, 1);
+    loader.load.spritesheet(GAME_OVER, 'gameover.png', 269, 146, 1);
   },
 
   displayFont: function displayFont (game, x = 0, y = 0, align = 'left', text = '') {
@@ -125,8 +127,21 @@ export default {
   instructions3: function instructions3 (game, x = 0, y = 0) {
     const image = game.add.image(x, y, INSTRUCTIONS_3);
     const text = this.displayFont(game, 0, 24, 'center', 'Good Luck!');
+    image.anchor.setTo(.5, .5);
     text.maxWidth = 144;
     image.addChild(text);
+    return image;
+  },
+
+  gameover: function gameover (game, x = 0, y = 0) {
+    const image = game.add.image(x, y, GAME_OVER);
+    const text1 = this.displayFont(game, 0, 112, 'center', 'GAME OVER');
+    const text2 = this.bodyFont(game, 0, 134, 'center', '(Blobby went splat)');
+    const text3 = this.bodyFont(game, 0, 160, 'center', 'Press Enter to restart');
+    image.anchor.setTo(.5, .5);
+    image.addChild(text1);
+    image.addChild(text2);
+    image.addChild(text3);
     return image;
   }
 };

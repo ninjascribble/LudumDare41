@@ -28,6 +28,7 @@ export default class Gameplay extends Phaser.State {
     });
 
     this.nextLevel();
+    Sounds.gameplay(this.game);
   }
 
   nextLevel () {
@@ -84,9 +85,11 @@ export default class Gameplay extends Phaser.State {
         if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
           player.jump();
           player.moveLeft(300);
+          Sounds.bump(this.game);
         } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
           player.jump();
           player.moveRight(300);
+          Sounds.bump(this.game);
         } else {
           console.log('Player dies! Resetting game');
           this.player.destroy();
