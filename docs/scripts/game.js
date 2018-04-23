@@ -9050,6 +9050,7 @@
 	      });
 	
 	      this.nextLevel();
+	      _Sounds2.default.gameplay(this.game);
 	    }
 	  }, {
 	    key: 'nextLevel',
@@ -9112,9 +9113,11 @@
 	          if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
 	            player.jump();
 	            player.moveLeft(300);
+	            _Sounds2.default.bump(_this3.game);
 	          } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
 	            player.jump();
 	            player.moveRight(300);
+	            _Sounds2.default.bump(_this3.game);
 	          } else {
 	            console.log('Player dies! Resetting game');
 	            _this3.player.destroy();
@@ -9211,6 +9214,7 @@
 	var INSTRUCTIONS_1 = 'instructions_1';
 	var INSTRUCTIONS_2 = 'instructions_2';
 	var INSTRUCTIONS_3 = 'instructions_3';
+	var GAME_OVER = 'gameover';
 	
 	exports.default = {
 	  load: function load(loader) {
@@ -9223,6 +9227,7 @@
 	    loader.load.spritesheet(INSTRUCTIONS_1, 'instructions_1.png', 52, 34, 1);
 	    loader.load.spritesheet(INSTRUCTIONS_2, 'instructions_2.png', 128, 34, 1);
 	    loader.load.spritesheet(INSTRUCTIONS_3, 'instructions_3.png', 128, 34, 1);
+	    loader.load.spritesheet(GAME_OVER, 'gameover.png', 269, 146, 1);
 	  },
 	
 	  displayFont: function displayFont(game) {
@@ -9371,8 +9376,24 @@
 	
 	    var image = game.add.image(x, y, INSTRUCTIONS_3);
 	    var text = this.displayFont(game, 0, 24, 'center', 'Good Luck!');
+	    image.anchor.setTo(.5, .5);
 	    text.maxWidth = 144;
 	    image.addChild(text);
+	    return image;
+	  },
+	
+	  gameover: function gameover(game) {
+	    var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+	    var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	    var image = game.add.image(x, y, GAME_OVER);
+	    var text1 = this.displayFont(game, 0, 112, 'center', 'GAME OVER');
+	    var text2 = this.bodyFont(game, 0, 134, 'center', '(Blobby went splat)');
+	    var text3 = this.bodyFont(game, 0, 160, 'center', 'Press Enter to restart');
+	    image.anchor.setTo(.5, .5);
+	    image.addChild(text1);
+	    image.addChild(text2);
+	    image.addChild(text3);
 	    return image;
 	  }
 	};
@@ -9708,6 +9729,9 @@
 	var JUMP = 'jump';
 	var NEXT_LEVEL = 'next level';
 	var SPLAT = 'splat';
+	var GAMEPLAY = 'gameplay';
+	var GAMEOVER = 'gameover';
+	var BUMP = 'bump';
 	
 	exports.default = {
 	  load: function load(loader) {
@@ -9715,6 +9739,9 @@
 	    loader.load.audio(JUMP, 'jump.wav');
 	    loader.load.audio(NEXT_LEVEL, 'nextLevel.wav');
 	    loader.load.audio(SPLAT, 'splat.wav');
+	    loader.load.audio(GAMEPLAY, 'gameplay.wav');
+	    loader.load.audio(GAMEOVER, 'gameover.wav');
+	    loader.load.audio(BUMP, 'bump.wav');
 	  },
 	
 	  placeBlock: function placeBlock(game) {
@@ -9731,6 +9758,18 @@
 	
 	  splat: function splat(game) {
 	    game.sound.play(SPLAT);
+	  },
+	
+	  gameplay: function gameplay(game) {
+	    game.sound.play(GAMEPLAY);
+	  },
+	
+	  gameover: function gameover(game) {
+	    game.sound.play(GAMEOVER);
+	  },
+	
+	  bump: function bump(game) {
+	    game.sound.play(BUMP);
 	  }
 	};
 
@@ -10396,6 +10435,10 @@
 	
 	var _index2 = _interopRequireDefault(_index);
 	
+	var _Sounds = __webpack_require__(336);
+	
+	var _Sounds2 = _interopRequireDefault(_Sounds);
+	
 	var _Enums = __webpack_require__(333);
 	
 	var _Enums2 = _interopRequireDefault(_Enums);
@@ -10421,23 +10464,8 @@
 	    key: 'create',
 	    value: function create() {
 	      this.stage.backgroundColor = '#5FCDE4';
-	
-	      _DisplayObjects2.default.titleCard(game, game.width / 2, 45);
-	
-	      game.add.existing(this.gameOverText());
-	      game.add.existing(this.restartText());
-	    }
-	  }, {
-	    key: 'gameOverText',
-	    value: function gameOverText() {
-	      var text = _DisplayObjects2.default.displayFont(game, game.width / 2, game.height / 2, 'center', _Enums2.default.GAMEOVER);
-	      return text;
-	    }
-	  }, {
-	    key: 'restartText',
-	    value: function restartText() {
-	      var text = _DisplayObjects2.default.bodyFont(game, game.width / 2, game.height * 3 / 4, 'center', _Enums2.default.RESTART);
-	      return text;
+	      _DisplayObjects2.default.gameover(game, game.width / 2, 96);
+	      _Sounds2.default.gameover(game);
 	    }
 	  }, {
 	    key: 'update',
