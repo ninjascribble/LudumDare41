@@ -10060,22 +10060,14 @@
 	  }, {
 	    key: 'next',
 	    value: function next() {
-	      var _this3 = this;
-	
 	      if (this.canMoveDown()) {
 	        this.falling.y += 16;
-	      } else {
-	        this.falling.children.forEach(function (brick) {
-	          brick.moves = false;
-	          _this3.grounded.push(brick);
-	        });
-	        this.falling = this.createTetronimo(game.width / 2);
 	      }
 	    }
 	  }, {
 	    key: 'update',
 	    value: function update() {
-	      var _this4 = this;
+	      var _this3 = this;
 	
 	      var right = true;
 	      var left = true;
@@ -10093,19 +10085,19 @@
 	
 	        // Test against the walls first...
 	        if (right == true) {
-	          right = r1 <= _this4.walls[1].body.left;
+	          right = r1 <= _this3.walls[1].body.left;
 	        }
 	
 	        if (left == true) {
-	          left = l1 >= _this4.walls[0].body.right;
+	          left = l1 >= _this3.walls[0].body.right;
 	        }
 	
 	        if (down == true) {
-	          down = b1 <= _this4.game.world.bottom;
+	          down = b1 <= _this3.game.world.bottom;
 	        }
 	
 	        // ...then every tetronimo
-	        return _this4.grounded.every(function (other) {
+	        return _this3.grounded.every(function (other) {
 	
 	          // Only check movements that are still available
 	          if (right == true) {
@@ -10126,6 +10118,15 @@
 	      });
 	
 	      this.availableMoves = { right: right, left: left, down: down };
+	
+	      if (down == false) {
+	        _Sounds2.default.placeBlock(this.game);
+	        this.falling.children.forEach(function (brick) {
+	          brick.moves = false;
+	          _this3.grounded.push(brick);
+	        });
+	        this.falling = this.createTetronimo(game.width / 2);
+	      }
 	    }
 	  }, {
 	    key: 'running',
