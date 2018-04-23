@@ -163,12 +163,6 @@ export default class WorldManager {
   next () {
     if (this.canMoveDown()) {
       this.falling.y += 16;
-    } else {
-      this.falling.children.forEach((brick) => {
-        brick.moves = false;
-        this.grounded.push(brick)
-      });
-      this.falling = this.createTetronimo(game.width / 2);
     }
   }
 
@@ -222,5 +216,14 @@ export default class WorldManager {
     });
 
     this.availableMoves = { right, left, down };
+
+    if (down == false) {
+      Sounds.placeBlock(this.game);
+      this.falling.children.forEach((brick) => {
+        brick.moves = false;
+        this.grounded.push(brick)
+      });
+      this.falling = this.createTetronimo(game.width / 2);
+    }
   }
 }
