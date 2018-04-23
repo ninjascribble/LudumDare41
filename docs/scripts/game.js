@@ -9066,7 +9066,7 @@
 	
 	      switch (level) {
 	        case 0:
-	          this.instructions = _DisplayObjects2.default.instructions1(game, game.width / 2, 96);
+	          this.instructions = _DisplayObjects2.default.instructions1(game, game.width / 2, 108);
 	          this.instructions.sendToBack();
 	          break;
 	        case 1:
@@ -9110,9 +9110,11 @@
 	          var brickBounds = brick.getBounds();
 	
 	          if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
-	            player.moveLeft();
+	            player.jump();
+	            player.moveLeft(300);
 	          } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
-	            player.moveRight();
+	            player.jump();
+	            player.moveRight(300);
 	          } else {
 	            console.log('Player dies! Resetting game');
 	            _this3.player.destroy();
@@ -9552,12 +9554,16 @@
 	  _createClass(Player, [{
 	    key: 'moveLeft',
 	    value: function moveLeft() {
-	      this.body.velocity.x = -160;
+	      var impulse = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 160;
+	
+	      this.body.velocity.x = impulse * -1;
 	    }
 	  }, {
 	    key: 'moveRight',
 	    value: function moveRight() {
-	      this.body.velocity.x = 160;
+	      var impulse = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 160;
+	
+	      this.body.velocity.x = impulse;
 	    }
 	  }, {
 	    key: 'jump',
