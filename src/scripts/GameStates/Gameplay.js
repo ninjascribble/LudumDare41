@@ -11,11 +11,13 @@ export default class Gameplay extends Phaser.State {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 350;
 
+    this.title = DisplayObjects.displayFont(this.game, game.width / 2, 48, 'center', 'Escape!');
     this.keyboardManager = new KeyboardManager(game);
     this.worldManager = new WorldManager(game);
     this.statsManager = new StatsManager(game);
     this.player = DisplayObjects.player(game, game.width / 2, game.height);
 
+    game.add.existing(this.title);
     game.add.existing(this.player);
 
     // We don't want the player to jump more than once per keypress,
@@ -52,6 +54,7 @@ export default class Gameplay extends Phaser.State {
         this.instructions.sendToBack();
         break;
       case 2:
+        this.title.destroy();
         this.instructions = DisplayObjects.instructions3(game, game.width / 2, 108);
         this.instructions.sendToBack();
         break;

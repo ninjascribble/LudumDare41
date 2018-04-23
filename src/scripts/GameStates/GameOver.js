@@ -6,7 +6,7 @@ import Enums from '../Enums';
 
 export default class GameOver extends Phaser.State {
   create () {
-    this.stage.backgroundColor = '#5FCDE4';
+    this.stage.backgroundColor = '#75715E';
     DisplayObjects.gameover(game, game.width / 2, 96);
     Sounds.gameover(game);
   }
