@@ -9033,11 +9033,13 @@
 	      game.physics.startSystem(Phaser.Physics.ARCADE);
 	      game.physics.arcade.gravity.y = 350;
 	
+	      this.title = _DisplayObjects2.default.displayFont(this.game, game.width / 2, 48, 'center', 'Escape!');
 	      this.keyboardManager = new _KeyboardManager2.default(game);
 	      this.worldManager = new _WorldManager2.default(game);
 	      this.statsManager = new _StatsManager2.default(game);
 	      this.player = _DisplayObjects2.default.player(game, game.width / 2, game.height);
 	
+	      game.add.existing(this.title);
 	      game.add.existing(this.player);
 	
 	      // We don't want the player to jump more than once per keypress,
@@ -9075,6 +9077,7 @@
 	          this.instructions.sendToBack();
 	          break;
 	        case 2:
+	          this.title.destroy();
 	          this.instructions = _DisplayObjects2.default.instructions3(game, game.width / 2, 108);
 	          this.instructions.sendToBack();
 	          break;
@@ -10463,7 +10466,7 @@
 	  _createClass(GameOver, [{
 	    key: 'create',
 	    value: function create() {
-	      this.stage.backgroundColor = '#5FCDE4';
+	      this.stage.backgroundColor = '#75715E';
 	      _DisplayObjects2.default.gameover(game, game.width / 2, 96);
 	      _Sounds2.default.gameover(game);
 	    }
