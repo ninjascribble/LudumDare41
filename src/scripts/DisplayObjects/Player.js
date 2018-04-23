@@ -19,12 +19,12 @@ export default class Player extends Phaser.Sprite {
     this.animations.add('Splat', [8, 11], 4, false);
   }
 
-  moveLeft () {
-    this.body.velocity.x = -160;
+  moveLeft (impulse = 160) {
+    this.body.velocity.x = impulse * -1;
   }
 
-  moveRight () {
-    this.body.velocity.x = 160;
+  moveRight (impulse = 160) {
+    this.body.velocity.x = impulse;
   }
 
   jump () {

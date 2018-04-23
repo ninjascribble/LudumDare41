@@ -82,9 +82,11 @@ export default class Gameplay extends Phaser.State {
         const brickBounds = brick.getBounds();
 
         if (playerBounds.left < brickBounds.left && brickBounds.left - playerBounds.left > 2) {
-          player.moveLeft();
+          player.jump();
+          player.moveLeft(300);
         } else if (playerBounds.right > brickBounds.right && playerBounds.right - brickBounds.right > 2) {
-          player.moveRight();
+          player.jump();
+          player.moveRight(300);
         } else {
           console.log('Player dies! Resetting game');
           this.player.destroy();
